@@ -80,6 +80,9 @@ namespace PikaFetcher
                     WriteLine(ConsoleColor.Red, $"[{label}] {e.Message}");
                     storyId -= r.Next(100) + 1;
                 }
+
+                await Task.Delay(1000);
+
             } while (!breakLoop);
         }
 
@@ -142,6 +145,8 @@ namespace PikaFetcher
                     {
                         WriteLine(ConsoleColor.Red, e.Message);
                     }
+
+                    await Task.Delay(1000);
                 }
             }
         }
@@ -219,8 +224,6 @@ namespace PikaFetcher
 
                     return new StoryProcessingResult(story, storyComments.Comments.Count, newComments, true);
                 }
-
-                await Task.Delay(1000);
 
                 return new StoryProcessingResult(story, 0, 0, false);
             }
