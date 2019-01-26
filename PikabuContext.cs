@@ -13,7 +13,7 @@ namespace PikaFetcher
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=pikabu.db");
+            optionsBuilder.UseSqlite("Data Source=/data/pikabu.db");
         }
     }
 
