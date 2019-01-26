@@ -220,6 +220,8 @@ namespace PikaFetcher
                     return new StoryProcessingResult(story, storyComments.Comments.Count, newComments, true);
                 }
 
+                await Task.Delay(1000);
+
                 return new StoryProcessingResult(story, 0, 0, false);
             }
         }
