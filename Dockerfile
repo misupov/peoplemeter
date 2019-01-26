@@ -7,5 +7,5 @@ RUN dotnet restore
 
 # copy and build everything else
 COPY . ./
-RUN dotnet publish -c Release -o out
+RUN dotnet publish PikaFetcher.sln -c Release -o out
 ENTRYPOINT ["dotnet", "out/PikaFetcher.dll"]
