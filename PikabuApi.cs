@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 
-namespace PikabusherTmp
+namespace PikaFetcher
 {
     internal class PikabuApi : IDisposable
     {

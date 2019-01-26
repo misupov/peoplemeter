@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace PikabusherTmp.Migrations
+namespace PikaFetcher.Migrations
 {
     public partial class InitialCreate : Migration
     {
@@ -15,7 +15,8 @@ namespace PikabusherTmp.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Title = table.Column<string>(nullable: true),
                     Rating = table.Column<int>(nullable: true),
-                    DateTimeUtc = table.Column<DateTime>(nullable: false)
+                    DateTimeUtc = table.Column<DateTime>(nullable: false),
+                    LastScanUtc = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {

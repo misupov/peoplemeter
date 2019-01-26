@@ -2,21 +2,23 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using PikabusherTmp;
+using PikaFetcher;
 
-namespace PikabusherTmp.Migrations
+namespace PikaFetcher.Migrations
 {
     [DbContext(typeof(PikabuContext))]
-    partial class PikabuContextModelSnapshot : ModelSnapshot
+    [Migration("20190126172444_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "2.2.1-servicing-10028");
 
-            modelBuilder.Entity("PikabusherTmp.Comment", b =>
+            modelBuilder.Entity("PikaFetcher.Comment", b =>
                 {
                     b.Property<long>("CommentId")
                         .ValueGeneratedOnAdd();
@@ -38,7 +40,7 @@ namespace PikabusherTmp.Migrations
                     b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("PikabusherTmp.Story", b =>
+            modelBuilder.Entity("PikaFetcher.Story", b =>
                 {
                     b.Property<int>("StoryId")
                         .ValueGeneratedOnAdd();
@@ -56,7 +58,7 @@ namespace PikabusherTmp.Migrations
                     b.ToTable("Stories");
                 });
 
-            modelBuilder.Entity("PikabusherTmp.User", b =>
+            modelBuilder.Entity("PikaFetcher.User", b =>
                 {
                     b.Property<string>("UserName")
                         .ValueGeneratedOnAdd();
@@ -66,13 +68,13 @@ namespace PikabusherTmp.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("PikabusherTmp.Comment", b =>
+            modelBuilder.Entity("PikaFetcher.Comment", b =>
                 {
-                    b.HasOne("PikabusherTmp.Story", "Story")
+                    b.HasOne("PikaFetcher.Story", "Story")
                         .WithMany("Comments")
                         .HasForeignKey("StoryId");
 
-                    b.HasOne("PikabusherTmp.User", "User")
+                    b.HasOne("PikaFetcher.User", "User")
                         .WithMany("Comments")
                         .HasForeignKey("UserName");
                 });
