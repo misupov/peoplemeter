@@ -36,7 +36,7 @@ namespace PikaFetcher
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            using (var context = new PikabuContext(_options.DataBase))
+            using (var context = new PikabuContext(_options.DataBase, _options.DataBaseType))
             {
                 context.Database.Migrate();
             }
@@ -114,7 +114,7 @@ namespace PikaFetcher
             while (true)
             {
                 Story[] topStories;
-                using (var db = new PikabuContext(_options.DataBase))
+                using (var db = new PikabuContext(_options.DataBase, _options.DataBaseType))
                 {
                     topStories = await db.Stories
                         .Where(story => story.DateTimeUtc >= DateTime.UtcNow - _options.Period)
@@ -153,7 +153,7 @@ namespace PikaFetcher
 
         private async Task<StoryProcessingResult> ProcessStory(PikabuApi api, int storyId)
         {
-            using (var db = new PikabuContext(_options.DataBase))
+            using (var db = new PikabuContext(_options.DataBase, _options.DataBaseType))
             using (var transaction = db.Database.BeginTransaction(IsolationLevel.Serializable))
             {
                 var scanTime = DateTime.UtcNow;

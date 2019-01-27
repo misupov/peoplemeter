@@ -5,6 +5,13 @@ using System.Text.RegularExpressions;
 
 namespace PikaFetcher
 {
+    internal enum DataBaseType
+    {
+        Unknown,
+        MySql,
+        Sqlite
+    }
+
     internal class Options
     {
         public int? Top { get; set; }
@@ -12,6 +19,8 @@ namespace PikaFetcher
         public TimeSpan Period { get; set; }
 
         public string Proxy { get; set; }
+
+        public DataBaseType DataBaseType { get; set; }
 
         public string DataBase { get; set; }
 
@@ -35,7 +44,7 @@ namespace PikaFetcher
                 }
             }
 
-            if (!dict.ContainsKey("period"))
+            if (!dict.ContainsKey("period") || !dict.ContainsKey("databasetype") || !dict.ContainsKey("database"))
             {
                 throw new InvalidOperationException();
             }
@@ -55,6 +64,22 @@ namespace PikaFetcher
             if (dict.TryGetValue("proxy", out var proxy))
             {
                 result.Proxy = proxy;
+            }
+
+            if (dict.TryGetValue("databasetype", out var databasetype))
+            {
+                switch (databasetype)
+                {
+                    case "mysql":
+                        result.DataBaseType = DataBaseType.MySql;
+                        break;
+                    case "sqlite":
+                        result.DataBaseType = DataBaseType.Sqlite;
+                        break;
+                    default:
+                        result.DataBaseType = DataBaseType.Unknown;
+                        break;
+                }
             }
 
             if (dict.TryGetValue("database", out var database))

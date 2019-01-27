@@ -5,12 +5,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace PikaFetcher
 {
-    public class PikabuContext : DbContext
+    internal class PikabuContext : DbContext
     {
+        private DataBaseType _dataBaseType;
         private readonly string _dataBase;
 
-        public PikabuContext(string dataBase)
+        public PikabuContext(string dataBase, DataBaseType dataBaseType)
         {
+            _dataBaseType = dataBaseType;
             _dataBase = dataBase ?? "pikabu.db";
         }
 
@@ -20,7 +22,17 @@ namespace PikaFetcher
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite($"Data Source={_dataBase}");
+            switch (_dataBaseType)
+            {
+                case DataBaseType.MySql:
+                    optionsBuilder.UseMySQL(_dataBase);
+                    break;
+                case DataBaseType.Sqlite:
+                    optionsBuilder.UseSqlite($"Data Source={_dataBase}");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 
