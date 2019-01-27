@@ -7,13 +7,20 @@ namespace PikaFetcher
 {
     public class PikabuContext : DbContext
     {
+        private readonly string _dataBase;
+
+        public PikabuContext(string dataBase)
+        {
+            _dataBase = dataBase ?? "pikabu.db";
+        }
+
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Story> Stories { get; set; }
         public DbSet<User> Users { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=/data/pikabu.db");
+            optionsBuilder.UseSqlite($"Data Source={_dataBase}");
         }
     }
 
