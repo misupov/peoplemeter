@@ -21,6 +21,7 @@ namespace PikaFetcher
             Console.Out.WriteLine($"DataBase: {options.DataBase}");
             Console.Out.WriteLine($"Top: {options.Top}");
             Console.Out.WriteLine($"Delay: {options.Delay}");
+            Console.Out.WriteLine($"Proxy: {options.Proxy}");
 
             var program = new Program(options);
             await program.OnExecuteAsync();
@@ -40,7 +41,7 @@ namespace PikaFetcher
                 context.Database.Migrate();
             }
 
-            var api = new PikabuApi();
+            var api = new PikabuApi(_options.Proxy);
             await api.Init();
 
             if (_options.Top != null)

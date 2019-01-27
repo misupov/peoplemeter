@@ -14,13 +14,23 @@ namespace PikaFetcher
         private const string PikabuUri = "https://pikabu.ru";
 
         private volatile HttpClient _httpClient;
+        private readonly string _proxy;
+
+        public PikabuApi(string proxy)
+        {
+            _proxy = proxy;
+        }
 
         public async Task Init()
         {
             if (_httpClient == null)
             {
                 var cookieContainer = new CookieContainer();
-                _httpClient = new HttpClient(new HttpClientHandler {CookieContainer = cookieContainer}, true);
+                _httpClient = new HttpClient(new HttpClientHandler
+                {
+                    CookieContainer = cookieContainer,
+                    Proxy = new WebProxy(_proxy)
+                }, true);
                 var pikabuUri = new Uri(PikabuUri);
                 (await _httpClient.GetAsync(pikabuUri)).EnsureSuccessStatusCode();
                 var sessionId = cookieContainer.GetCookies(pikabuUri)
