@@ -8,6 +8,7 @@ namespace PikaFetcher
     internal enum DataBaseType
     {
         Unknown,
+        RDS,
         MySql,
         Sqlite
     }
@@ -28,6 +29,22 @@ namespace PikaFetcher
 
         public int? Skip { get; set; }
 
+        public static Options FromEnv()
+        {
+            var dict = new Dictionary<string, string>
+            {
+                ["top"] = Environment.GetEnvironmentVariable("top"),
+                ["period"] = Environment.GetEnvironmentVariable("period"),
+                ["proxy"] = Environment.GetEnvironmentVariable("proxy"),
+                ["databasetype"] = Environment.GetEnvironmentVariable("databasetype"),
+                ["database"] = Environment.GetEnvironmentVariable("database"),
+                ["delay"] = Environment.GetEnvironmentVariable("delay"),
+                ["skip"] = Environment.GetEnvironmentVariable("skip")
+            };
+
+            return CreateOptions(dict);
+        }
+
         public static Options Parse(string[] args)
         {
             var dict = new Dictionary<string, string>();
@@ -44,6 +61,11 @@ namespace PikaFetcher
                 }
             }
 
+            return CreateOptions(dict);
+        }
+
+        private static Options CreateOptions(IDictionary<string, string> dict)
+        {
             if (!dict.ContainsKey("period") || !dict.ContainsKey("databasetype") || !dict.ContainsKey("database"))
             {
                 throw new InvalidOperationException();
@@ -70,6 +92,9 @@ namespace PikaFetcher
             {
                 switch (databasetype)
                 {
+                    case "rds":
+                        result.DataBaseType = DataBaseType.RDS;
+                        break;
                     case "mysql":
                         result.DataBaseType = DataBaseType.MySql;
                         break;
@@ -102,6 +127,12 @@ namespace PikaFetcher
 
         private static bool TryParseTimeSpan(string str, out TimeSpan value)
         {
+            if (str == null)
+            {
+                value = TimeSpan.Zero;
+                return false;
+            }
+
             if (TimeSpan.TryParse(str, out value))
             {
                 return true;

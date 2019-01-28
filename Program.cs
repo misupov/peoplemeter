@@ -14,7 +14,8 @@ namespace PikaFetcher
 
         private static async Task Main(string[] args)
         {
-            var options = Options.Parse(args);
+            var options = Options.FromEnv();
+            //var options = Options.Parse(args);
 
             Console.Out.WriteLine($"Period: {options.Period}");
             Console.Out.WriteLine($"Skip: {options.Skip}");
