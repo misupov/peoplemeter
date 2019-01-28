@@ -26,10 +26,10 @@ namespace PikaFetcher
             switch (_dataBaseType)
             {
                 case DataBaseType.RDS:
-                    optionsBuilder.UseMySQL(GetRDSConnectionString());
+                    optionsBuilder.UseMySql(GetRDSConnectionString());
                     break;
                 case DataBaseType.MySql:
-                    optionsBuilder.UseMySQL(_dataBase);
+                    optionsBuilder.UseMySql(_dataBase);
                     break;
                 case DataBaseType.Sqlite:
                     optionsBuilder.UseSqlite($"Data Source={_dataBase}");
