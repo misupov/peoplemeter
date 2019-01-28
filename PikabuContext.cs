@@ -52,6 +52,11 @@ namespace PikaFetcher
             string hostname = appConfig["RDS_HOSTNAME"];
             string port = appConfig["RDS_PORT"];
 
+            Console.WriteLine("username=" + username);
+            Console.WriteLine("password=" + password);
+            Console.WriteLine("hostname=" + hostname);
+            Console.WriteLine("port=" + port);
+
             return "Data Source=" + hostname + ";Initial Catalog=" + dbname + ";User ID=" + username + ";Password=" + password + ";";
         }
     }
