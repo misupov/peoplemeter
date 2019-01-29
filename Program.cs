@@ -15,6 +15,8 @@ namespace PikaFetcher
 
         private static async Task Main(string[] args)
         {
+            Console.Out.WriteLine("!!!!!!!!!!!!!!!!!!!!!!");
+            await Task.Delay(1000000);
             foreach (DictionaryEntry variable in Environment.GetEnvironmentVariables())
             {
                 Console.Out.WriteLine(variable.Key + "=" + variable.Value);

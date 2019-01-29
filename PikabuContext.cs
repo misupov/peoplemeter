@@ -45,17 +45,16 @@ namespace PikaFetcher
 
             string dbname = appConfig["RDS_DB_NAME"];
 
-            if (string.IsNullOrEmpty(dbname)) return null;
-
             string username = appConfig["RDS_USERNAME"];
             string password = appConfig["RDS_PASSWORD"];
             string hostname = appConfig["RDS_HOSTNAME"];
             string port = appConfig["RDS_PORT"];
 
             Console.WriteLine("username=" + username);
-            Console.WriteLine("password=" + password);
             Console.WriteLine("hostname=" + hostname);
             Console.WriteLine("port=" + port);
+
+            if (string.IsNullOrEmpty(dbname)) return null;
 
             return "Data Source=" + hostname + ";Initial Catalog=" + dbname + ";User ID=" + username + ";Password=" + password + ";";
         }
