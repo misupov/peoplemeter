@@ -66,7 +66,7 @@ namespace PikaFetcher
 
         private static Options CreateOptions(IDictionary<string, string> dict)
         {
-            if (!dict.ContainsKey("period") || !dict.ContainsKey("databasetype") || !dict.ContainsKey("database"))
+            if (!dict.ContainsKey("period") || !dict.ContainsKey("databasetype"))
             {
                 throw new InvalidOperationException();
             }

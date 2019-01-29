@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -14,6 +15,11 @@ namespace PikaFetcher
 
         private static async Task Main(string[] args)
         {
+            foreach (DictionaryEntry variable in Environment.GetEnvironmentVariables())
+            {
+                Console.Out.WriteLine(variable.Key + "=" + variable.Value);
+            }
+
             var options = Options.FromEnv();
             //var options = Options.Parse(args);
 

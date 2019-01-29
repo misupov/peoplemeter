@@ -5,6 +5,8 @@ WORKDIR /app
 COPY *.csproj ./
 RUN dotnet restore
 
+EXPOSE 80
+
 # copy and build everything else
 COPY . ./
 RUN dotnet publish PikaFetcher.sln -c Release -o out
