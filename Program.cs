@@ -19,6 +19,7 @@ namespace PikaFetcher
 
             Console.Out.WriteLine($"Period: {options.Period}");
             Console.Out.WriteLine($"Skip: {options.Skip}");
+            Console.Out.WriteLine($"DataBaseType: {options.DataBaseType}");
             Console.Out.WriteLine($"DataBase: {options.DataBase}");
             Console.Out.WriteLine($"Top: {options.Top}");
             Console.Out.WriteLine($"Delay: {options.Delay}");
