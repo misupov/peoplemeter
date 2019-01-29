@@ -11,6 +11,10 @@ namespace PikaFetcher
         private readonly DataBaseType _dataBaseType;
         private readonly string _dataBase;
 
+        public PikabuContext()
+        {
+        }
+
         public PikabuContext(string dataBase, DataBaseType dataBaseType)
         {
             _dataBaseType = dataBaseType;
@@ -35,7 +39,8 @@ namespace PikaFetcher
                     optionsBuilder.UseSqlite($"Data Source={_dataBase}");
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    optionsBuilder.UseSqlite($"Data Source=pikabu.db");
+                    break;
             }
         }
 
@@ -75,6 +80,7 @@ namespace PikaFetcher
         public User User { get; set; }
         public Story Story { get; set; }
         public DateTime DateTimeUtc { get; set; }
+        public string CommentBody { get; set; }
     }
 
     public class Story

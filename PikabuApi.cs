@@ -91,23 +91,18 @@ namespace PikaFetcher
             
             var httpResponseMessage = await _httpClient.SendAsync(request);
             var response = await httpResponseMessage.Content.ReadAsStringAsync();
-            try
+            var responseObject = (dynamic) JsonConvert.DeserializeObject(response);
+            foreach (var comment in responseObject.data.comments)
             {
-                var responseObject = (dynamic) JsonConvert.DeserializeObject(response);
-                foreach (var comment in responseObject.data.comments)
+                var doc = new HtmlDocument();
+                doc.LoadHtml((string) comment.html);
+                var storyComments =
+                    ParseRootComment(
+                        (HtmlNodeNavigator) doc.CreateNavigator().SelectSingleNode("div[@class='comment']"));
+                foreach (var storyComment in storyComments)
                 {
-                    var doc = new HtmlDocument();
-                    doc.LoadHtml((string) comment.html);
-                    var storyComments = ParseRootComment((HtmlNodeNavigator) doc.CreateNavigator().SelectSingleNode("div[@class='comment']"));
-                    foreach (var storyComment in storyComments)
-                    {
-                        comments.Add(storyComment);
-                    }
+                    comments.Add(storyComment);
                 }
-            }
-            catch
-            {
-
             }
         }
 
@@ -159,9 +154,11 @@ namespace PikaFetcher
             var timestamp = DateTimeOffset.ParseExact(metadata["d"], "yyyy-MM-dd'T'HH:mm:sszzz", null);
 
             var commentHeader = comment.SelectSingleNode("div[contains(@class, 'comment__body')]/div[contains(@class, 'comment__header')]");
-            var commentContent = comment.SelectSingleNode("div[contains(@class, 'comment__body')]/div[contains(@class, 'comment__content')]");
+            var commentContent =
+                comment.SelectSingleNode("div[contains(@class, 'comment__body')]/div[contains(@class, 'comment__content')]/*")
+                ?? comment.SelectSingleNode("div[contains(@class, 'comment__body')]/div[contains(@class, 'comment__content')]/text()");
             var user = commentHeader.SelectSingleNode("div[contains(@class, 'comment__user')]/@data-name").Value;
-            return new StoryComment(user, commentId, parentId, timestamp, commentContent.ToString());
+            return new StoryComment(user, commentId, parentId, timestamp, commentContent.OuterXml);
         }
 
         public void Dispose()
