@@ -81,7 +81,7 @@ namespace PikaFetcher
                 try
                 {
                     var result = await ProcessStory(api, storyId);
-                    Console.WriteLine($"[{FormatTimeSpan(DateTime.UtcNow - result.TimestampUtc)}] ({storyId}) {result.Rating?.ToString("+0;-#") ?? "?"} ({result.NewCommentsCount}/{result.TotalCommentsCount}) {result.StoryTitle}");
+                    Console.WriteLine($"{DateTime.UtcNow} [{FormatTimeSpan(DateTime.UtcNow - result.TimestampUtc)}] ({storyId}) {result.Rating?.ToString("+0;-#") ?? "?"} ({result.NewCommentsCount}/{result.TotalCommentsCount}) {result.StoryTitle}");
                     breakLoop = (DateTime.UtcNow - result.TimestampUtc) > span;
                 }
                 catch (Exception e)
@@ -144,7 +144,7 @@ namespace PikaFetcher
                         var result = await ProcessStory(api, story.StoryId);
                         if (result != null)
                         {
-                            Console.WriteLine($"[{FormatTimeSpan(DateTime.UtcNow - result.TimestampUtc)}] ({story.StoryId}) {result.Rating?.ToString("+0;-#") ?? "?"} ({result.NewCommentsCount}/{result.TotalCommentsCount}) {result.StoryTitle}");
+                            Console.WriteLine($"{DateTime.UtcNow} [{FormatTimeSpan(DateTime.UtcNow - result.TimestampUtc)}] ({story.StoryId}) {result.Rating?.ToString("+0;-#") ?? "?"} ({result.NewCommentsCount}/{result.TotalCommentsCount}) {result.StoryTitle}");
                         }
                     }
                     catch (Exception e)

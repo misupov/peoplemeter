@@ -45,20 +45,15 @@ namespace PikaFetcher
 
         public static string GetRDSConnectionString()
         {
-            string dbname = Environment.GetEnvironmentVariable("RDS_DB_NAME");
-            string username = Environment.GetEnvironmentVariable("RDS_USERNAME");
-            string password = Environment.GetEnvironmentVariable("RDS_PASSWORD");
-            string hostname = Environment.GetEnvironmentVariable("RDS_HOSTNAME");
-            string port = Environment.GetEnvironmentVariable("RDS_PORT");
-
-            Console.WriteLine("RDS Properties: ");
-            Console.WriteLine("username=" + username);
-            Console.WriteLine("hostname=" + hostname);
-            Console.WriteLine("port=" + port);
+            var dbname = Environment.GetEnvironmentVariable("RDS_DB_NAME");
+            var username = Environment.GetEnvironmentVariable("RDS_USERNAME");
+            var password = Environment.GetEnvironmentVariable("RDS_PASSWORD");
+            var hostname = Environment.GetEnvironmentVariable("RDS_HOSTNAME");
+            var port = Environment.GetEnvironmentVariable("RDS_PORT");
 
             if (string.IsNullOrEmpty(dbname)) return null;
 
-            return "Data Source=" + hostname + ";Initial Catalog=" + dbname + ";User ID=" + username + ";Password=" + password + ";";
+            return $"Data Source={hostname},{port};Initial Catalog={dbname};User ID={username};Password={password};";
         }
     }
 
