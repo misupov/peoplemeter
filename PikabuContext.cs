@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 namespace PikaFetcher
@@ -46,15 +45,13 @@ namespace PikaFetcher
 
         public static string GetRDSConnectionString()
         {
-            var appConfig = ConfigurationManager.AppSettings;
+            string dbname = Environment.GetEnvironmentVariable("RDS_DB_NAME");
+            string username = Environment.GetEnvironmentVariable("RDS_USERNAME");
+            string password = Environment.GetEnvironmentVariable("RDS_PASSWORD");
+            string hostname = Environment.GetEnvironmentVariable("RDS_HOSTNAME");
+            string port = Environment.GetEnvironmentVariable("RDS_PORT");
 
-            string dbname = appConfig["RDS_DB_NAME"];
-
-            string username = appConfig["RDS_USERNAME"];
-            string password = appConfig["RDS_PASSWORD"];
-            string hostname = appConfig["RDS_HOSTNAME"];
-            string port = appConfig["RDS_PORT"];
-
+            Console.WriteLine("RDS Properties: ");
             Console.WriteLine("username=" + username);
             Console.WriteLine("hostname=" + hostname);
             Console.WriteLine("port=" + port);
