@@ -1,4 +1,5 @@
 ﻿using System;
+using PikaFetcher.Model;
 
 namespace PikaFetcher
 {

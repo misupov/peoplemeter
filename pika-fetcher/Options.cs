@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using PikaFetcher.Model;
 
 namespace PikaFetcher
 {
@@ -175,6 +176,17 @@ namespace PikaFetcher
             }
 
             return false;
+        }
+
+        public static Options FromJob(Job job)
+        {
+            return new Options
+            {
+                Period = job.Period,
+                Delay = job.Delay,
+                Skip = job.Skip,
+                Top = job.Top
+            };
         }
     }
 }

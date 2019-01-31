@@ -2,10 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PikaFetcher.Model;
 
 namespace PikaFetcher
 {
@@ -15,6 +17,20 @@ namespace PikaFetcher
 
         private static async Task Main(string[] args)
         {
+            if (args.Length == 0)
+            {
+                await RunFetchers();
+            }
+            else
+            {
+                var jobId = int.Parse(args[0]);
+                using (var context = new PikabuContext())
+                {
+                    var job = await context.Jobs.FirstOrDefaultAsync(j => j.JobId == jobId);
+                    Options.FromJob(job);
+                }
+            }
+
             foreach (DictionaryEntry variable in Environment.GetEnvironmentVariables())
             {
                 Console.Out.WriteLine(variable.Key + "=" + variable.Value);
@@ -33,6 +49,18 @@ namespace PikaFetcher
 
             var program = new Program(options);
             await program.OnExecuteAsync();
+        }
+
+        private static async Task RunFetchers()
+        {
+            using (var context = new PikabuContext())
+            {
+                var jobs = await context.Jobs.ToArrayAsync();
+                foreach (var job in jobs)
+                {
+                    Process.Start($"dotnet {Environment.GetCommandLineArgs()[0]} {job.JobId}");
+                }
+            }
         }
 
         private Program(Options options)
