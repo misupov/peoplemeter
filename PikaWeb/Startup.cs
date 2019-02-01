@@ -48,6 +48,7 @@ namespace PikaWeb
             else
             {
                 app.UseHsts();
+                app.UseCors(builder => builder.WithOrigins("http://lam0x86.com", "https://lam0x86.com"));
             }
 
             app.UseIpRateLimiting();
