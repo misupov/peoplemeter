@@ -1,0 +1,26 @@
+branch-defaults:
+  default:
+    environment: pikabu-env
+  master:
+    environment: Pikabu-env
+environment-defaults:
+  Pikabu-env:
+    branch: null
+    repository: null
+  pikabu-env:
+    branch: null
+    repository: null
+global:
+  application_name: pikabu
+  branch: null
+  default_ec2_keyname: pikabu
+  default_platform: docker
+  default_region: eu-central-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: eb-cli
+  repository: null
+  sc: git
+  workspace_type: Application
