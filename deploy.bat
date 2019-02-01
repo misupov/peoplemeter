@@ -1,3 +1,3 @@
 git add -A
-git commit --allow-empty-message -m ""
+git commit -m "no message"
 eb deploy
