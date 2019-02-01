@@ -22,6 +22,8 @@ namespace PikaWeb
             // needed to load configuration from appsettings.json
             services.AddOptions();
 
+            services.AddCors();
+
             // needed to store rate limit counters and ip rules
             services.AddMemoryCache();
 
@@ -48,8 +50,9 @@ namespace PikaWeb
             else
             {
                 app.UseHsts();
-                app.UseCors(builder => builder.WithOrigins("http://lam0x86.com", "https://lam0x86.com"));
             }
+
+            app.UseCors(builder => builder.WithOrigins("http://lam0x86.com", "https://lam0x86.com"));
 
             app.UseIpRateLimiting();
 
