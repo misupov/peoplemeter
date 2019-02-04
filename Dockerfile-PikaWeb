@@ -4,12 +4,14 @@ EXPOSE 80
 
 FROM microsoft/dotnet:2.2-sdk AS build
 WORKDIR /src
-COPY . .
+COPY ./PikaWeb ./PikaWeb
+COPY ./PikaModel ./PikaModel
+WORKDIR /src/PikaWeb
 RUN dotnet restore
-RUN dotnet build PikaWeb/PikaWeb.csproj -c Release -o /app
+RUN dotnet build PikaWeb.csproj -c Release -o /app
 
 FROM build AS publish
-RUN dotnet publish PikaWeb/PikaWeb.csproj -c Release -o /app
+RUN dotnet publish PikaWeb.csproj -c Release -o /app
 
 FROM base AS final
 WORKDIR /app

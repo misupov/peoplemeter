@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  pika-fetcher:
+    build:
+      context: '.'
+      dockerfile: Dockerfile-PikaFetcher
+    image: 202826568878.dkr.ecr.eu-central-1.amazonaws.com/pikabu/pika-fetcher
+  pika-web:
+    build:
+      context: '.'
+      dockerfile: Dockerfile-PikaWeb
+    image: 202826568878.dkr.ecr.eu-central-1.amazonaws.com/pikabu/pika-web

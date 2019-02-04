@@ -13,57 +13,16 @@ namespace PikaFetcher
 {
     class Program
     {
-        private readonly Options _options;
+        private readonly Random r = new Random();
 
         private static async Task Main(string[] args)
         {
-            if (args.Length == 0)
-            {
-                await RunFetchers();
-            }
-            else
-            {
-                var jobId = int.Parse(args[0]);
-                using (var context = new PikabuContext())
-                {
-                    var job = await context.Jobs.FirstOrDefaultAsync(j => j.JobId == jobId);
-                    Options.FromJob(job);
-                }
-            }
-
-            foreach (DictionaryEntry variable in Environment.GetEnvironmentVariables())
-            {
-                Console.Out.WriteLine(variable.Key + "=" + variable.Value);
-            }
-
-            var options = Options.FromEnv();
-            //var options = Options.Parse(args);
-
-            Console.Out.WriteLine($"Period: {options.Period}");
-            Console.Out.WriteLine($"Skip: {options.Skip}");
-            Console.Out.WriteLine($"Top: {options.Top}");
-            Console.Out.WriteLine($"Delay: {options.Delay}");
-            Console.Out.WriteLine($"Proxy: {options.Proxy}");
-
-            var program = new Program(options);
+            var program = new Program();
             await program.OnExecuteAsync();
         }
 
-        private static async Task RunFetchers()
+        private Program()
         {
-            using (var context = new PikabuContext())
-            {
-                var jobs = await context.Jobs.ToArrayAsync();
-                foreach (var job in jobs)
-                {
-                    Process.Start($"dotnet {Environment.GetCommandLineArgs()[0]} {job.JobId}");
-                }
-            }
-        }
-
-        private Program(Options options)
-        {
-            _options = options;
         }
 
         private async Task OnExecuteAsync()
@@ -75,51 +34,57 @@ namespace PikaFetcher
                 context.Database.Migrate();
             }
 
-            var api = new PikabuApi(_options.Proxy);
+            var api = new PikabuApi();
             await api.Init();
 
-            if (_options.Top != null)
-            {
-                await LoopTop(api);
-            }
-            else
-            {
-                await LoopPeriod(api);
-            }
+            var loopTop = LoopTop(api);
+            var loopPeriod = LoopPeriod(api);
+            await Task.WhenAll(loopTop, loopPeriod);
         }
 
         private async Task LoopPeriod(PikabuApi api)
         {
+            int c = 0;
+            var latestStoryId = await api.GetLatestStoryId();
             while (true)
             {
-                var latestStoryId = await api.GetLatestStoryId() - (_options.Skip ?? 0);
-                await LoopSpan(api, latestStoryId, _options.Period, _options.Delay ?? TimeSpan.Zero);
-
-                Console.WriteLine($"RESTART");
-            }
-        }
-
-        private async Task LoopSpan(PikabuApi api, int storyId, TimeSpan span, TimeSpan delay)
-        {
-            var breakLoop = false;
-            do
-            {
+                int storyId = -1;
                 try
                 {
+                    storyId = GetStoryId(latestStoryId);
                     var result = await ProcessStory(api, storyId);
                     Console.WriteLine($"{DateTime.UtcNow} [{FormatTimeSpan(DateTime.UtcNow - result.TimestampUtc)}] ({storyId}) {result.Rating?.ToString("+0;-#") ?? "?"} ({result.NewCommentsCount}/{result.TotalCommentsCount}) {result.StoryTitle}");
-                    breakLoop = (DateTime.UtcNow - result.TimestampUtc) > span;
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    Console.WriteLine($"ERROR ({storyId}/{latestStoryId}): {e.Message}");
                 }
 
-                storyId--;
+                c++;
+                if (c % 100 == 0)
+                {
+                    latestStoryId = await api.GetLatestStoryId();
+                    c = 0;
+                }
+            }
+        }
 
-                await Task.Delay(delay);
-
-            } while (!breakLoop);
+        private int GetStoryId(int latestStoryId)
+        {
+            var next = r.NextDouble();
+            if (next < 0.5)
+            {
+                return latestStoryId - r.Next(200);
+            }
+            if (next < 0.7)
+            {
+                return latestStoryId - 200 - r.Next(800);
+            }
+            if (next < 0.9)
+            {
+                return latestStoryId - 1000 - r.Next(9000);
+            }
+            return latestStoryId - 10000 - r.Next(latestStoryId - 10000);
         }
 
         private string FormatTimeSpan(TimeSpan timeSpan)
@@ -144,41 +109,42 @@ namespace PikaFetcher
 
         private async Task LoopTop(PikabuApi api)
         {
-            int top = _options.Top.Value;
+            int top = 500;
             while (true)
             {
-                Story[] topStories;
+                int[] topStoryIds;
                 using (var db = new PikabuContext())
                 {
-                    topStories = await db.Stories
-                        .Where(story => story.DateTimeUtc >= DateTime.UtcNow - _options.Period)
+                    topStoryIds = await db.Stories
+                        .Where(story => story.DateTimeUtc >= DateTime.UtcNow - TimeSpan.FromDays(7))
                         .OrderByDescending(story => story.Rating)
+                        .Select(story => story.StoryId)
                         .Take(top)
                         .ToArrayAsync();
                 }
 
-                if (topStories.Length < top)
+                if (topStoryIds.Length < top)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(1));
                     continue;
                 }
 
-                foreach (var story in topStories)
+                for (var index = 0; index < topStoryIds.Length; index++)
                 {
+                    var storyId = topStoryIds[index];
                     try
                     {
-                        var result = await ProcessStory(api, story.StoryId);
+                        var result = await ProcessStory(api, storyId);
                         if (result != null)
                         {
-                            Console.WriteLine($"{DateTime.UtcNow} [{FormatTimeSpan(DateTime.UtcNow - result.TimestampUtc)}] ({story.StoryId}) {result.Rating?.ToString("+0;-#") ?? "?"} ({result.NewCommentsCount}/{result.TotalCommentsCount}) {result.StoryTitle}");
+                            Console.WriteLine(
+                                $"TOP[{index + 1}] {DateTime.UtcNow} [{FormatTimeSpan(DateTime.UtcNow - result.TimestampUtc)}] ({storyId}) {result.Rating?.ToString("+0;-#") ?? "?"} ({result.NewCommentsCount}/{result.TotalCommentsCount}) {result.StoryTitle}");
                         }
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine($"ERROR: {e.Message}");
                     }
-
-                    await Task.Delay(1000);
                 }
 
                 Console.WriteLine($"RESTART");
@@ -211,15 +177,15 @@ namespace PikaFetcher
                 story.Title = storyComments.StoryTitle;
                 story.LastScanUtc = scanTime;
 
-                var users = new Dictionary<string, User>();
+                var userNames = new HashSet<string>(storyComments.Comments.Select(c => c.User));
+
+                var users = (await db.Users
+                    .Include(u => u.Comments)
+                    .Where(u => userNames.Contains(u.UserName)).ToArrayAsync()).ToDictionary(user => user.UserName);
 
                 foreach (var comment in storyComments.Comments)
                 {
-                    if (!users.TryGetValue(comment.User, out var user))
-                    {
-                        user = await db.Users.Include(u => u.Comments)
-                            .SingleOrDefaultAsync(u => u.UserName == comment.User);
-                    }
+                    users.TryGetValue(comment.User, out var user);
 
                     if (user == null)
                     {

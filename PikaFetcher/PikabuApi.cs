@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using HtmlAgilityPack;
+using AngleSharp;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
 using Newtonsoft.Json;
 
 namespace PikaFetcher
@@ -14,12 +18,6 @@ namespace PikaFetcher
         private const string PikabuUri = "https://pikabu.ru";
 
         private volatile HttpClient _httpClient;
-        private readonly string _proxy;
-
-        public PikabuApi(string proxy)
-        {
-            _proxy = proxy;
-        }
 
         public async Task Init()
         {
@@ -29,7 +27,6 @@ namespace PikaFetcher
                 _httpClient = new HttpClient(new HttpClientHandler
                 {
                     CookieContainer = cookieContainer,
-                    Proxy = new WebProxy(_proxy)
                 }, true);
                 var pikabuUri = new Uri(PikabuUri);
                 (await _httpClient.GetAsync(pikabuUri)).EnsureSuccessStatusCode();
@@ -47,10 +44,9 @@ namespace PikaFetcher
                 throw new InvalidOperationException();
             }
 
-            var doc = new HtmlDocument();
-            doc.LoadHtml(await _httpClient.GetStringAsync(CreateUri("/new")));
-            var xPathNavigator = doc.CreateNavigator();
-            var latestStoryIdStr = xPathNavigator.SelectSingleNode("//*/article[1]").GetAttribute("data-story-id", null);
+            var htmlParser = new HtmlParser();
+            var document = htmlParser.ParseDocument(await _httpClient.GetStringAsync(CreateUri("/new")));
+            var latestStoryIdStr = document.Body.QuerySelector("article").GetAttribute("data-story-id");
             var result = int.Parse(latestStoryIdStr);
             return result;
         }
@@ -94,56 +90,41 @@ namespace PikaFetcher
             var responseObject = (dynamic) JsonConvert.DeserializeObject(response);
             foreach (var comment in responseObject.data.comments)
             {
-                var doc = new HtmlDocument();
-                doc.LoadHtml((string) comment.html);
-                var storyComments =
-                    ParseRootComment(
-                        (HtmlNodeNavigator) doc.CreateNavigator().SelectSingleNode("div[@class='comment']"));
-                foreach (var storyComment in storyComments)
+                var htmlParser = new HtmlParser();
+                var document = htmlParser.ParseDocument((string)comment.html);
+                foreach (var storyComment in document.Body.QuerySelectorAll("div.comment"))
                 {
-                    comments.Add(storyComment);
+                    comments.Add(ParseComment(storyComment));
                 }
             }
         }
 
-        private async Task<(string storyTitle, int? rating, DateTimeOffset timestamp, int totalCommentsCount)> LoadRootComments(int storyId, List<StoryComment> comments)
+        private async Task<(string storyTitle, int? rating, DateTimeOffset timestamp, int totalCommentsCount)> LoadRootComments(int storyId, List<StoryComment> storyComments)
         {
-            var doc = new HtmlDocument();
-            var html = await _httpClient.GetStringAsync(CreateUri("/story/_" + storyId));
-            doc.LoadHtml(html);
+            var htmlParser = new HtmlParser();
+            var document = htmlParser.ParseDocument(await _httpClient.GetStringAsync(CreateUri("/story/_" + storyId)));
 
-            var navigator = doc.CreateNavigator();
-            var storyTitle = navigator.SelectSingleNode("/html/head/title").Value;
-            var ratingStr = navigator.SelectSingleNode("//*/div[@class='story__rating-count']").Value;
+            var storyTitle = document.Head.QuerySelector("title").InnerHtml;
+            var ratingStr = document.Body.QuerySelector(".story__rating-count").InnerHtml;
             var hasRating = int.TryParse(ratingStr, out var rating);
-            var timestampStr = navigator.SelectSingleNode("//*/time[@class='caption story__datetime hint']/@datetime").Value;
+            var timestampStr = document.Body.QuerySelector("time.caption.story__datetime.hint").GetAttribute("datetime");
             var timestamp = DateTimeOffset.ParseExact(timestampStr, "yyyy-MM-dd'T'HH:mm:sszzz", null);
-            var totalCommentsCount = navigator.SelectSingleNode("//*/section[@class='section_header']/h4[@id='comments']/@data-total").ValueAsInt;
-            var iterator = navigator.Select("//*/div[@class='comments__container']/div[@class='comment']");
-            foreach (HtmlNodeNavigator rootComment in iterator)
+            var totalCommentsCountStr = document.Body.QuerySelector("section.section_header h4#comments").GetAttribute("data-total");
+            int.TryParse(totalCommentsCountStr, out var totalCommentsCount);
+            var comments = document.Body.QuerySelectorAll("div.comments__container div.comment");
+            foreach (var comment in comments)
             {
-                foreach (var comment in ParseRootComment(rootComment))
-                {
-                    comments.Add(comment);
-                }
+                storyComments.Add(ParseComment(comment));
             }
-
+            
             return (storyTitle, hasRating ? rating : (int?) null, timestamp, totalCommentsCount);
         }
 
-        private IEnumerable<StoryComment> ParseRootComment(HtmlNodeNavigator rootComment)
+        private StoryComment ParseComment(IElement comment)
         {
-            yield return ParseComment(rootComment);
-            foreach (var comment in rootComment.Select(".//*/div[@class='comment']").OfType<HtmlNodeNavigator>())
-            {
-                yield return ParseComment(comment);
-            }
-        }
-
-        private StoryComment ParseComment(HtmlNodeNavigator comment)
-        {
-            var commentId = comment.SelectSingleNode("@data-id").ValueAsLong;
-            var metadataString = comment.SelectSingleNode("@data-meta").Value;
+            var commentIdStr = comment.GetAttribute("data-id");
+            long.TryParse(commentIdStr, out var commentId);
+            var metadataString = comment.GetAttribute("data-meta");
             var metadata = metadataString
                 .Split(',')
                 .Select(s => s.Split('='))
@@ -153,12 +134,11 @@ namespace PikaFetcher
             var parentId = long.Parse(metadata["pid"]);
             var timestamp = DateTimeOffset.ParseExact(metadata["d"], "yyyy-MM-dd'T'HH:mm:sszzz", null);
 
-            var commentHeader = comment.SelectSingleNode("div[contains(@class, 'comment__body')]/div[contains(@class, 'comment__header')]");
-            var commentContent =
-                comment.SelectSingleNode("div[contains(@class, 'comment__body')]/div[contains(@class, 'comment__content')]/*")
-                ?? comment.SelectSingleNode("div[contains(@class, 'comment__body')]/div[contains(@class, 'comment__content')]/text()");
-            var user = commentHeader.SelectSingleNode("div[contains(@class, 'comment__user')]/@data-name").Value;
-            return new StoryComment(user, commentId, parentId, timestamp, commentContent.OuterXml);
+            var commentHeader = comment.QuerySelector("div.comment__body div.comment__header");
+            var commentContentNode = comment.QuerySelector("div.comment__body div.comment__content");
+
+            var user = commentHeader.QuerySelector("div.comment__user").GetAttribute("data-name");
+            return new StoryComment(user, commentId, parentId, timestamp, commentContentNode.InnerHtml.Trim(' ', '\t'));
         }
 
         public void Dispose()
@@ -166,9 +146,9 @@ namespace PikaFetcher
             _httpClient.Dispose();
         }
 
-        private Uri CreateUri(string path)
+        private string CreateUri(string path)
         {
-            return new Uri(PikabuUri + path);
+            return PikabuUri + path;
         }
     }
 
