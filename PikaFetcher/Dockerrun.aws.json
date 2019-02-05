@@ -1,0 +1,14 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "202826568878.dkr.ecr.us-east-2.amazonaws.com/pikabu/pika-fetcher",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": "80"
+    }
+  ],
+  "Entrypoint": "dotnet",
+  "Command": "PikaFetcher.dll"
+}

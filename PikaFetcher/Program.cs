@@ -179,23 +179,21 @@ namespace PikaFetcher
 
                 var userNames = new HashSet<string>(storyComments.Comments.Select(c => c.User));
 
-                var users = (await db.Users
-                    .Include(u => u.Comments)
-                    .Where(u => userNames.Contains(u.UserName)).ToArrayAsync()).ToDictionary(user => user.UserName);
+                var userComments = await db.Comments.Where(c => userNames.Contains(c.User.UserName)).Select(c => new { c.User.UserName, c.CommentId}).ToArrayAsync();
+
+                var users = new HashSet<string>(userComments.Select(uc => uc.UserName));
+                var comments = new HashSet<long>(userComments.Select(uc => uc.CommentId));
 
                 foreach (var comment in storyComments.Comments)
                 {
-                    users.TryGetValue(comment.User, out var user);
-
-                    if (user == null)
+                    if (!users.Contains(comment.User))
                     {
-                        user = new User {UserName = comment.User, Comments = new List<Comment>()};
+                        var user = new User {UserName = comment.User, Comments = new List<Comment>()};
                         await db.Users.AddAsync(user);
-                        users.Add(user.UserName, user);
+                        users.Add(user.UserName);
                     }
 
-                    var existingComments = new HashSet<long>(user.Comments.Select(c => c.CommentId));
-                    if (!existingComments.Contains(comment.CommentId))
+                    if (!comments.Contains(comment.CommentId))
                     {
                         var item = new Comment
                         {
@@ -203,10 +201,10 @@ namespace PikaFetcher
                             ParentId = comment.ParentId,
                             DateTimeUtc = comment.Timestamp.UtcDateTime,
                             Story = story,
-                            User = user,
+                            UserName = comment.User,
                             CommentBody = comment.Body
                         };
-                        user.Comments.Add(item);
+                        comments.Add(comment.CommentId);
                         await db.Comments.AddAsync(item);
                         newComments++;
                     }

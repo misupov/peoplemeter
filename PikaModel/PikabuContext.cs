@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace PikaModel
 {
@@ -11,8 +13,7 @@ namespace PikaModel
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySql("Server=pikabu.ci62k1kzzkwd.eu-central-1.rds.amazonaws.com;Port=3306;Database=pikabu;Uid=lam0x86;Pwd=lam0xPIKABU!");
-            //optionsBuilder.UseMySql(GetRDSConnectionString());
+            optionsBuilder.UseMySql(GetRDSConnectionString());
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -31,7 +32,54 @@ namespace PikaModel
 
             if (string.IsNullOrEmpty(dbname)) return null;
 
-            return $"Data Source={hostname},{port};Initial Catalog={dbname};User ID={username};Password={password};";
+            return $"Server={hostname};Port={port};Database={dbname};Uid={username};Pwd={password}";
+        }
+    }
+
+    public class XXX : ILoggerProvider
+    {
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ILogger CreateLogger(string categoryName)
+        {
+            return new YYY(categoryName);
+        }
+
+        public class YYY : ILogger
+        {
+            private StreamWriter _file;
+
+            public YYY(string categoryName)
+            {
+                _file = File.CreateText(categoryName);
+            }
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+                _file.WriteLine($"{logLevel}: {formatter(state, exception)}");
+                _file.WriteLine();
+                _file.Flush();
+            }
+
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return logLevel >= LogLevel.Debug;
+            }
+
+            public IDisposable BeginScope<TState>(TState state)
+            {
+                return new ZZZ();
+            }
+
+            public class ZZZ : IDisposable
+            {
+                public void Dispose()
+                {
+                }
+            }
         }
     }
 }

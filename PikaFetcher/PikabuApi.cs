@@ -138,7 +138,7 @@ namespace PikaFetcher
             var commentContentNode = comment.QuerySelector("div.comment__body div.comment__content");
 
             var user = commentHeader.QuerySelector("div.comment__user").GetAttribute("data-name");
-            return new StoryComment(user, commentId, parentId, timestamp, commentContentNode.InnerHtml.Trim(' ', '\t'));
+            return new StoryComment(user, commentId, parentId, timestamp, commentContentNode.InnerHtml.Trim(' ', '\t', '\n'));
         }
 
         public void Dispose()

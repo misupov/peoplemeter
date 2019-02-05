@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PikaModel;
@@ -12,20 +11,24 @@ namespace PikaWeb.Controllers
     [ApiController]
     public class CommentsController : ControllerBase
     {
-        // GET api/comments
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
         // GET api/comments/lam0x86
         [HttpGet("{userName}")]
-        public async Task<Comment[]> Get(string userName)
+        public async Task<CommentDTO[]> Get(string userName)
         {
             using (var db = new PikabuContext())
             {
-                return await db.Comments.Where(c => c.User.UserName == userName).ToArrayAsync();
+                return await db.Comments
+                    .Include(comment => comment.Story.StoryId)
+                    .Where(c => c.User.UserName == userName)
+                    .Select(c => new CommentDTO
+                    {
+                        StoryId = c.Story.StoryId,
+                        CommentId = c.CommentId,
+                        ParentId = c.ParentId,
+                        DateTimeUtc = c.DateTimeUtc,
+                        CommentBody = c.CommentBody
+                    })
+                    .ToArrayAsync();
             }
         }
 
@@ -46,5 +49,14 @@ namespace PikaWeb.Controllers
         public void Delete(int id)
         {
         }
+    }
+
+    public class CommentDTO
+    {
+        public int StoryId { get; set; }
+        public long CommentId { get; set; }
+        public long ParentId { get; set; }
+        public DateTime DateTimeUtc { get; set; }
+        public string CommentBody { get; set; }
     }
 }
