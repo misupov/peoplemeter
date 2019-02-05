@@ -72,19 +72,36 @@ namespace PikaFetcher
         private int GetStoryId(int latestStoryId)
         {
             var next = r.NextDouble();
+            var skip = 0;
+            var range = 200;
+            if (next < 0.2)
+            {
+                return latestStoryId - r.Next(range);
+            }
+
+            skip += range;
+            range = 1800;
             if (next < 0.5)
             {
-                return latestStoryId - r.Next(200);
+                return latestStoryId - skip - r.Next(range);
             }
-            if (next < 0.7)
+
+            skip += range;
+            range = 18000;
+            if (next < 0.8)
             {
-                return latestStoryId - 200 - r.Next(800);
+                return latestStoryId - skip - r.Next(range);
             }
-            if (next < 0.9)
+
+            skip += range;
+            range = 60000;
+            if (next < 1)
             {
-                return latestStoryId - 1000 - r.Next(9000);
+                return latestStoryId - skip - r.Next(range);
             }
-            return latestStoryId - 10000 - r.Next(latestStoryId - 10000);
+
+            skip += range;
+            return latestStoryId - skip - r.Next(latestStoryId - range);
         }
 
         private string FormatTimeSpan(TimeSpan timeSpan)
