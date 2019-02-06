@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PikaModel", "PikaModel\Pika
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsEncrypt", "LetsEncrypt\LetsEncrypt.csproj", "{4249542B-E4A4-44A4-A2A7-014D4D45D867}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PikaFun", "PikaFun\PikaFun.csproj", "{8B779BCF-BBFE-4A6F-B26E-87253A313813}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{4249542B-E4A4-44A4-A2A7-014D4D45D867}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4249542B-E4A4-44A4-A2A7-014D4D45D867}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4249542B-E4A4-44A4-A2A7-014D4D45D867}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B779BCF-BBFE-4A6F-B26E-87253A313813}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B779BCF-BBFE-4A6F-B26E-87253A313813}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B779BCF-BBFE-4A6F-B26E-87253A313813}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B779BCF-BBFE-4A6F-B26E-87253A313813}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

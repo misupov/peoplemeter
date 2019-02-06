@@ -56,7 +56,7 @@ namespace PikaWeb
 
             app.UseIpRateLimiting();
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseMvc();

@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PikaModel;
 
 namespace PikaModel.Migrations
 {
     [DbContext(typeof(PikabuContext))]
-    partial class PikabuContextModelSnapshot : ModelSnapshot
+    [Migration("20190206211120_AuthorColumnAdded")]
+    partial class AuthorColumnAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

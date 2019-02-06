@@ -9,17 +9,16 @@ namespace PikaWeb.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CommentsController : ControllerBase
+    public class CommentController : ControllerBase
     {
-        // GET api/comments/lam0x86
-        [HttpGet("{userName}")]
-        public async Task<CommentDTO[]> Get(string userName)
+        // GET api/comment/{id}
+        [HttpGet("{id}")]
+        public async Task<CommentDTO> Get(long id)
         {
             using (var db = new PikabuContext())
             {
                 return await db.Comments
-                    .Include(comment => comment.Story.Title)
-                    .Where(c => c.User.UserName == userName)
+                    .Where(comment => comment.CommentId == id)
                     .Select(c => new CommentDTO
                     {
                         StoryId = c.StoryId,
@@ -29,8 +28,7 @@ namespace PikaWeb.Controllers
                         DateTimeUtc = c.DateTimeUtc,
                         CommentBody = c.CommentBody
                     })
-                    .OrderByDescending(c => c.DateTimeUtc)
-                    .ToArrayAsync();
+                    .SingleOrDefaultAsync();
             }
         }
     }
