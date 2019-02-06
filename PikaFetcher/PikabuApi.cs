@@ -59,14 +59,14 @@ namespace PikaFetcher
             }
 
             var comments = new List<StoryComment>();
-            var (storyTitle, rating, timestamp, totalCommentsCount) = await LoadRootComments(storyId, comments);
+            var (storyTitle, author, rating, timestamp, totalCommentsCount) = await LoadRootComments(storyId, comments);
 
             while (totalCommentsCount > comments.Count)
             {
                 await LoadComments(storyId, comments.Last().CommentId, comments);
             }
 
-            return new StoryComments(storyId, storyTitle, rating, timestamp, comments);
+            return new StoryComments(storyId, author, storyTitle, rating, timestamp, comments);
         }
 
         private async Task LoadComments(int storyId, long startCommentId, ICollection<StoryComment> comments)
@@ -99,12 +99,13 @@ namespace PikaFetcher
             }
         }
 
-        private async Task<(string storyTitle, int? rating, DateTimeOffset timestamp, int totalCommentsCount)> LoadRootComments(int storyId, List<StoryComment> storyComments)
+        private async Task<(string storyTitle, string author, int? rating, DateTimeOffset timestamp, int totalCommentsCount)> LoadRootComments(int storyId, List<StoryComment> storyComments)
         {
             var htmlParser = new HtmlParser();
             var document = htmlParser.ParseDocument(await _httpClient.GetStringAsync(CreateUri("/story/_" + storyId)));
 
             var storyTitle = document.Head.QuerySelector("title").InnerHtml;
+            var author = document.Body.QuerySelector("a .user__nick").InnerHtml;
             var ratingStr = document.Body.QuerySelector(".story__rating-count").InnerHtml;
             var hasRating = int.TryParse(ratingStr, out var rating);
             var timestampStr = document.Body.QuerySelector("time.caption.story__datetime.hint").GetAttribute("datetime");
@@ -117,7 +118,7 @@ namespace PikaFetcher
                 storyComments.Add(ParseComment(comment));
             }
             
-            return (storyTitle, hasRating ? rating : (int?) null, timestamp, totalCommentsCount);
+            return (storyTitle, author, hasRating ? rating : (int?) null, timestamp, totalCommentsCount);
         }
 
         private StoryComment ParseComment(IElement comment)
@@ -173,14 +174,16 @@ namespace PikaFetcher
     internal class StoryComments
     {
         public int StoryId { get; }
+        public string Author { get; }
         public string StoryTitle { get; }
         public int? Rating { get; }
         public DateTimeOffset Timestamp { get; }
         public IReadOnlyList<StoryComment> Comments { get; }
 
-        public StoryComments(int storyId, string storyTitle, int? rating, DateTimeOffset timestamp, IReadOnlyList<StoryComment> comments)
+        public StoryComments(int storyId, string author, string storyTitle, int? rating, DateTimeOffset timestamp, IReadOnlyList<StoryComment> comments)
         {
             StoryId = storyId;
+            Author = author;
             StoryTitle = storyTitle;
             Rating = rating;
             Timestamp = timestamp;
