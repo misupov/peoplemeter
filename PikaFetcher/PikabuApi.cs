@@ -105,7 +105,7 @@ namespace PikaFetcher
             var document = htmlParser.ParseDocument(await _httpClient.GetStringAsync(CreateUri("/story/_" + storyId)));
 
             var storyTitle = document.Head.QuerySelector("title").InnerHtml;
-            var author = document.Body.QuerySelector("a .user__nick").InnerHtml;
+            var author = document.Body.QuerySelector(".story__user .user__nick").InnerHtml;
             var ratingStr = document.Body.QuerySelector(".story__rating-count").InnerHtml;
             var hasRating = int.TryParse(ratingStr, out var rating);
             var timestampStr = document.Body.QuerySelector("time.caption.story__datetime.hint").GetAttribute("datetime");

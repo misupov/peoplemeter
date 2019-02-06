@@ -18,6 +18,7 @@ namespace PikaWeb.Controllers
             using (var db = new PikabuContext())
             {
                 return await db.Comments
+                    .Include(u => u.Story.Author)
                     .Where(c => c.User.UserName == userName)
                     .Select(c => new CommentDTO
                     {
