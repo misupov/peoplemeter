@@ -184,6 +184,7 @@ namespace PikaFetcher
                         StoryId = storyComments.StoryId,
                         Rating = storyComments.Rating,
                         Title = storyComments.StoryTitle,
+                        Author = storyComments.Author,
                         DateTimeUtc = storyComments.Timestamp.UtcDateTime,
                         Comments = new List<Comment>()
                     };
@@ -192,6 +193,7 @@ namespace PikaFetcher
 
                 story.Rating = storyComments.Rating;
                 story.Title = storyComments.StoryTitle;
+                story.Author = storyComments.Author;
                 story.LastScanUtc = scanTime;
 
                 var userNames = new HashSet<string>(storyComments.Comments.Select(c => c.User));

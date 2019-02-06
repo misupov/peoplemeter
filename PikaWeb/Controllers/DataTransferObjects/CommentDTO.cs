@@ -10,5 +10,6 @@ namespace PikaWeb.Controllers.DataTransferObjects
         public long ParentId { get; set; }
         public DateTime DateTimeUtc { get; set; }
         public string CommentBody { get; set; }
+        public bool IsAuthor { get; set; }
     }
 }

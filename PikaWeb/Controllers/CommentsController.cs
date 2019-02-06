@@ -18,7 +18,6 @@ namespace PikaWeb.Controllers
             using (var db = new PikabuContext())
             {
                 return await db.Comments
-                    .Include(comment => comment.Story.Title)
                     .Where(c => c.User.UserName == userName)
                     .Select(c => new CommentDTO
                     {
@@ -27,7 +26,8 @@ namespace PikaWeb.Controllers
                         CommentId = c.CommentId,
                         ParentId = c.ParentId,
                         DateTimeUtc = c.DateTimeUtc,
-                        CommentBody = c.CommentBody
+                        CommentBody = c.CommentBody,
+                        IsAuthor = c.User.UserName == c.Story.Author
                     })
                     .OrderByDescending(c => c.DateTimeUtc)
                     .ToArrayAsync();
