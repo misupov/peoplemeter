@@ -11,15 +11,18 @@ namespace PikaWeb.Controllers
     [ApiController]
     public class CommentsController : ControllerBase
     {
-        // GET api/comments/lam0x86
+        // GET api/comments/lam0x86?skipTill=545674
         [HttpGet("{userName}")]
-        public async Task<CommentDTO[]> Get(string userName)
+        public async Task<CommentDTO[]> Get(string userName, long skipTill = long.MaxValue)
         {
             using (var db = new PikabuContext())
             {
                 return await db.Comments
                     .Include(u => u.Story.Author)
                     .Where(c => c.User.UserName == userName)
+                    .Where(c => c.CommentId < skipTill)
+                    .OrderByDescending(c => c.DateTimeUtc)
+                    .Take(50)
                     .Select(c => new CommentDTO
                     {
                         StoryId = c.StoryId,
@@ -30,7 +33,6 @@ namespace PikaWeb.Controllers
                         CommentBody = c.CommentBody,
                         IsAuthor = c.User.UserName == c.Story.Author
                     })
-                    .OrderByDescending(c => c.DateTimeUtc)
                     .ToArrayAsync();
             }
         }

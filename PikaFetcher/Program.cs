@@ -171,7 +171,6 @@ namespace PikaFetcher
         private async Task<StoryProcessingResult> ProcessStory(PikabuApi api, int storyId)
         {
             using (var db = new PikabuContext())
-            using (var transaction = db.Database.BeginTransaction(IsolationLevel.Serializable))
             {
                 var scanTime = DateTime.UtcNow;
                 var newComments = 0;
@@ -198,10 +197,10 @@ namespace PikaFetcher
 
                 var userNames = new HashSet<string>(storyComments.Comments.Select(c => c.User));
 
-                var userComments = await db.Comments.Where(c => userNames.Contains(c.User.UserName)).Select(c => new { c.User.UserName, c.CommentId}).ToArrayAsync();
+                var userComments = await db.Comments.Where(c => userNames.Contains(c.User.UserName)).ToArrayAsync();
 
                 var users = new HashSet<string>(userComments.Select(uc => uc.UserName));
-                var comments = new HashSet<long>(userComments.Select(uc => uc.CommentId));
+                var comments = userComments.ToDictionary(c => c.CommentId);
 
                 foreach (var comment in storyComments.Comments)
                 {
@@ -212,25 +211,29 @@ namespace PikaFetcher
                         users.Add(user.UserName);
                     }
 
-                    if (!comments.Contains(comment.CommentId))
+                    if (!comments.TryGetValue(comment.CommentId, out var c))
                     {
                         var item = new Comment
                         {
                             CommentId = comment.CommentId,
                             ParentId = comment.ParentId,
                             DateTimeUtc = comment.Timestamp.UtcDateTime,
+                            Rating = comment.Rating,
                             Story = story,
                             UserName = comment.User,
                             CommentBody = comment.Body
                         };
-                        comments.Add(comment.CommentId);
+                        comments[item.CommentId] = item;
                         await db.Comments.AddAsync(item);
                         newComments++;
+                    }
+                    else
+                    {
+                        c.Rating = comment.Rating;
                     }
                 }
 
                 await db.SaveChangesAsync();
-                transaction.Commit();
 
                 return new StoryProcessingResult(story, storyComments.Comments.Count, newComments);
             }

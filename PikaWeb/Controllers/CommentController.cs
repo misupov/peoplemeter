@@ -22,6 +22,7 @@ namespace PikaWeb.Controllers
                     .Select(c => new CommentDTO
                     {
                         StoryId = c.StoryId,
+                        UserName = c.UserName,
                         StoryTitle = c.Story.Title,
                         CommentId = c.CommentId,
                         ParentId = c.ParentId,

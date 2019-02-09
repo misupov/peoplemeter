@@ -139,7 +139,10 @@ namespace PikaFetcher
             var commentContentNode = comment.QuerySelector("div.comment__body div.comment__content");
 
             var user = commentHeader.QuerySelector("div.comment__user").GetAttribute("data-name");
-            return new StoryComment(user, commentId, parentId, timestamp, commentContentNode.InnerHtml.Trim(' ', '\t', '\n'));
+            var ratingNode = commentHeader.QuerySelector(".comment__rating-count");
+            var ratingStr = ratingNode.HasTextNodes() ? ratingNode.InnerHtml : null;
+            var rating = ratingStr != null ? (int?) int.Parse(ratingStr) : null;
+            return new StoryComment(user, commentId, parentId, rating, timestamp, commentContentNode.InnerHtml.Trim(' ', '\t', '\n'));
         }
 
         public void Dispose()
@@ -158,14 +161,16 @@ namespace PikaFetcher
         public string User { get; }
         public long CommentId { get; }
         public long ParentId { get; }
+        public int? Rating { get; }
         public DateTimeOffset Timestamp { get; }
         public string Body { get; }
 
-        public StoryComment(string user, long commentId, long parentId, DateTimeOffset timestamp, string body)
+        public StoryComment(string user, long commentId, long parentId, int? rating, DateTimeOffset timestamp, string body)
         {
             User = user;
             CommentId = commentId;
             ParentId = parentId;
+            Rating = rating;
             Timestamp = timestamp;
             Body = body;
         }
