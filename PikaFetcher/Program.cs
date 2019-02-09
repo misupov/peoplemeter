@@ -29,11 +29,6 @@ namespace PikaFetcher
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            using (var context = new PikabuContext())
-            {
-                context.Database.Migrate();
-            }
-
             var api = new PikabuApi();
             await api.Init();
 
@@ -57,6 +52,7 @@ namespace PikaFetcher
                 }
                 catch (Exception e)
                 {
+                    await Task.Delay(1000);
                     Console.WriteLine($"ERROR ({storyId}/{latestStoryId}): {e.Message}");
                 }
 
@@ -160,16 +156,18 @@ namespace PikaFetcher
                     }
                     catch (Exception e)
                     {
+                        await Task.Delay(1000);
                         Console.WriteLine($"ERROR: {e.Message}");
                     }
                 }
 
-                Console.WriteLine($"RESTART");
+                Console.WriteLine("RESTART");
             }
         }
 
         private async Task<StoryProcessingResult> ProcessStory(PikabuApi api, int storyId)
         {
+            throw new Exception();
             using (var db = new PikabuContext())
             {
                 var scanTime = DateTime.UtcNow;
