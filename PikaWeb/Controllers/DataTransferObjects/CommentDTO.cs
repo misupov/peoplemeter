@@ -12,5 +12,6 @@ namespace PikaWeb.Controllers.DataTransferObjects
         public DateTime DateTimeUtc { get; set; }
         public string CommentBody { get; set; }
         public bool IsAuthor { get; set; }
+        public int? Rating { get; set; }
     }
 }

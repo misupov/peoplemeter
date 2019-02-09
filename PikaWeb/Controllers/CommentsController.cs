@@ -30,8 +30,9 @@ namespace PikaWeb.Controllers
                         CommentId = c.CommentId,
                         ParentId = c.ParentId,
                         DateTimeUtc = c.DateTimeUtc,
-                        CommentBody = c.CommentBody,
-                        IsAuthor = c.User.UserName == c.Story.Author
+                        CommentBody = c.CommentContent.BodyHtml,
+                        IsAuthor = c.User.UserName == c.Story.Author,
+                        Rating = c.Rating
                     })
                     .ToArrayAsync();
             }

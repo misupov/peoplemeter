@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +12,7 @@ namespace PikaFetcher
     {
         private readonly Random r = new Random();
 
-        private static async Task Main(string[] args)
+        private static async Task Main()
         {
             var program = new Program();
             await program.OnExecuteAsync();
@@ -41,22 +38,23 @@ namespace PikaFetcher
         {
             int c = 0;
             var latestStoryId = await api.GetLatestStoryId();
+            var savingTask = Task.CompletedTask;
             while (true)
             {
                 int storyId = -1;
                 try
                 {
                     storyId = GetStoryId(latestStoryId);
-                    var result = await ProcessStory(api, storyId);
-                    Console.WriteLine($"{DateTime.UtcNow} [{FormatTimeSpan(DateTime.UtcNow - result.TimestampUtc)}] ({storyId}) {result.Rating?.ToString("+0;-#") ?? "?"} ({result.NewCommentsCount}/{result.TotalCommentsCount}) {result.StoryTitle}");
+                    await savingTask;
+                    savingTask = await ProcessStory(api, storyId);
                 }
                 catch (Exception e)
                 {
                     await Task.Delay(1000);
                     Console.WriteLine($"ERROR ({storyId}/{latestStoryId}): {e.Message}");
                 }
-
                 c++;
+
                 if (c % 100 == 0)
                 {
                     latestStoryId = await api.GetLatestStoryId();
@@ -100,29 +98,10 @@ namespace PikaFetcher
             return latestStoryId - skip - r.Next(latestStoryId - range);
         }
 
-        private string FormatTimeSpan(TimeSpan timeSpan)
-        {
-            if (timeSpan < TimeSpan.FromMinutes(1))
-            {
-                return $"{(int) timeSpan.TotalSeconds} sec ago";
-            }
-
-            if (timeSpan < TimeSpan.FromHours(1))
-            {
-                return $"{(int)timeSpan.TotalMinutes} min ago";
-            }
-
-            if (timeSpan < TimeSpan.FromHours(48))
-            {
-                return $"{timeSpan.TotalHours:##.##} hours ago";
-            }
-
-            return $"{timeSpan.TotalDays:##.##} days ago";
-        }
-
         private async Task LoopTop(PikabuApi api)
         {
             int top = 500;
+            var savingTask = Task.CompletedTask;
             while (true)
             {
                 int[] topStoryIds;
@@ -147,12 +126,8 @@ namespace PikaFetcher
                     var storyId = topStoryIds[index];
                     try
                     {
-                        var result = await ProcessStory(api, storyId);
-                        if (result != null)
-                        {
-                            Console.WriteLine(
-                                $"TOP[{index + 1}] {DateTime.UtcNow} [{FormatTimeSpan(DateTime.UtcNow - result.TimestampUtc)}] ({storyId}) {result.Rating?.ToString("+0;-#") ?? "?"} ({result.NewCommentsCount}/{result.TotalCommentsCount}) {result.StoryTitle}");
-                        }
+                        await savingTask;
+                        savingTask = await ProcessStory(api, storyId);
                     }
                     catch (Exception e)
                     {
@@ -165,15 +140,19 @@ namespace PikaFetcher
             }
         }
 
-        private async Task<StoryProcessingResult> ProcessStory(PikabuApi api, int storyId)
+        private async Task<Task> ProcessStory(PikabuApi api, int storyId)
         {
-            throw new Exception();
+            var storyComments = await api.GetStoryComments(storyId);
+            return Task.Run(() => SaveStory(storyComments));
+        }
+
+        private async Task SaveStory(StoryComments storyComments)
+        {
             using (var db = new PikabuContext())
             {
                 var scanTime = DateTime.UtcNow;
                 var newComments = 0;
-                var story = await db.Stories.SingleOrDefaultAsync(s => s.StoryId == storyId);
-                var storyComments = await api.GetStoryComments(storyId);
+                var story = await db.Stories.SingleOrDefaultAsync(s => s.StoryId == storyComments.StoryId);
                 if (story == null)
                 {
                     story = new Story
@@ -204,7 +183,7 @@ namespace PikaFetcher
                 {
                     if (!users.Contains(comment.User))
                     {
-                        var user = new User {UserName = comment.User, Comments = new List<Comment>()};
+                        var user = new User { UserName = comment.User, Comments = new List<Comment>() };
                         await db.Users.AddAsync(user);
                         users.Add(user.UserName);
                     }
@@ -219,9 +198,10 @@ namespace PikaFetcher
                             Rating = comment.Rating,
                             Story = story,
                             UserName = comment.User,
-                            CommentBody = comment.Body
+                            CommentContent = new CommentContent() { BodyHtml = comment.Body }
                         };
                         comments[item.CommentId] = item;
+                        await db.CommentContents.AddAsync(item.CommentContent);
                         await db.Comments.AddAsync(item);
                         newComments++;
                     }
@@ -231,9 +211,9 @@ namespace PikaFetcher
                     }
                 }
 
-                await db.SaveChangesAsync();
+                Console.WriteLine($"{DateTime.UtcNow} ({storyComments.StoryId}) {storyComments.Rating?.ToString("+0;-#") ?? "?"} {storyComments.StoryTitle}");
 
-                return new StoryProcessingResult(story, storyComments.Comments.Count, newComments);
+                await db.SaveChangesAsync();
             }
         }
     }
