@@ -174,21 +174,23 @@ namespace PikaFetcher
 
                 var userNames = new HashSet<string>(storyComments.Comments.Select(c => c.User));
 
-                var userComments = await db.Comments.Where(c => userNames.Contains(c.User.UserName)).ToArrayAsync();
-
-                var users = new HashSet<string>(userComments.Select(uc => uc.UserName));
-                var comments = userComments.ToDictionary(c => c.CommentId);
+                var userComments = (await db.Comments.Where(c => userNames.Contains(c.User.UserName)).ToArrayAsync()).ToDictionary(us => us.CommentId);
+                var users = (await db.Users.Where(c => userNames.Contains(c.UserName)).ToArrayAsync()).ToDictionary(u => u.UserName);
 
                 foreach (var comment in storyComments.Comments)
                 {
-                    if (!users.Contains(comment.User))
+                    if (!users.TryGetValue(comment.User, out var user))
                     {
-                        var user = new User { UserName = comment.User, Comments = new List<Comment>() };
+                        user = new User { UserName = comment.User, AvatarUrl = comment.UserAvatarUrl, Comments = new List<Comment>() };
                         await db.Users.AddAsync(user);
-                        users.Add(user.UserName);
+                        users[user.UserName] = user;
+                    }
+                    else
+                    {
+                        user.AvatarUrl = comment.UserAvatarUrl;
                     }
 
-                    if (!comments.TryGetValue(comment.CommentId, out var c))
+                    if (!userComments.TryGetValue(comment.CommentId, out var c))
                     {
                         var item = new Comment
                         {
@@ -200,7 +202,7 @@ namespace PikaFetcher
                             UserName = comment.User,
                             CommentContent = new CommentContent() { BodyHtml = comment.Body }
                         };
-                        comments[item.CommentId] = item;
+                        userComments[item.CommentId] = item;
                         await db.CommentContents.AddAsync(item.CommentContent);
                         await db.Comments.AddAsync(item);
                         newComments++;

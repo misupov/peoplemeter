@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ namespace PikaWeb.Controllers
                     {
                         StoryId = c.StoryId,
                         UserName = c.UserName,
+                        AvatarUrl = db.Users.Single(u => u.UserName == c.UserName).AvatarUrl,
                         StoryTitle = c.Story.Title,
                         CommentId = c.CommentId,
                         ParentId = c.ParentId,

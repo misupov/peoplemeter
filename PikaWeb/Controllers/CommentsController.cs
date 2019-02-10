@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,7 @@ namespace PikaWeb.Controllers
                     {
                         StoryId = c.StoryId,
                         StoryTitle = c.Story.Title,
+                        AvatarUrl = db.Users.Single(u => u.UserName == c.UserName).AvatarUrl,
                         CommentId = c.CommentId,
                         ParentId = c.ParentId,
                         DateTimeUtc = c.DateTimeUtc,
