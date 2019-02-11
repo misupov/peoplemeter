@@ -123,6 +123,7 @@ namespace PikaFetcher
         {
             using (var db = new PikabuContext())
             {
+                var transaction = await db.Database.BeginTransactionAsync();
                 var scanTime = DateTime.UtcNow;
                 var newComments = 0;
                 var story = await db.Stories.SingleOrDefaultAsync(s => s.StoryId == storyComments.StoryId);
@@ -189,6 +190,8 @@ namespace PikaFetcher
                 Console.WriteLine($"{DateTime.UtcNow} ({storyComments.StoryId}) {storyComments.Rating?.ToString("+0;-#") ?? "?"} {storyComments.StoryTitle}");
 
                 await db.SaveChangesAsync();
+
+                transaction.Commit();
             }
         }
 
