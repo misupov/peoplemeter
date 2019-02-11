@@ -49,6 +49,10 @@ namespace PikaFetcher
                 try
                 {
                     storyId = GetStoryId(latestStoryId);
+                    if (savingTask.IsCanceled)
+                    {
+                        savingTask = Task.Delay(TimeSpan.FromSeconds(1));
+                    }
                     await savingTask;
                     savingTask = await ProcessStory(api, storyId);
                     await UpdateStats(latestHourStats, latestMinuteStats, "Random");
@@ -98,6 +102,10 @@ namespace PikaFetcher
                 {
                     try
                     {
+                        if (savingTask.IsCanceled)
+                        {
+                            savingTask = Task.Delay(TimeSpan.FromSeconds(1));
+                        }
                         await savingTask;
                         savingTask = await ProcessStory(api, storyId);
                         await UpdateStats(latestHourStats, latestMinuteStats, "Top" + top);
