@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace PikaModel
+namespace PikaModel.Model
 {
     public class User
     {

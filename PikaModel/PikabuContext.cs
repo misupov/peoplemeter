@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using PikaModel.Model;
 
 namespace PikaModel
 {
@@ -9,6 +11,7 @@ namespace PikaModel
         public DbSet<CommentContent> CommentContents { get; set; }
         public DbSet<Story> Stories { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<FetcherStat> FetcherStats { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -33,5 +36,15 @@ namespace PikaModel
 
             return $"Server={hostname};Port={port};Database={dbname};Uid={username};Pwd={password}";
         }
+    }
+
+    public class FetcherStat
+    {
+        [Key]
+        public string FetcherName { get; set; }
+
+        public double StoriesPerSecondForLastHour { get; set; }
+
+        public double StoriesPerSecondForLastMinute { get; set; }
     }
 }

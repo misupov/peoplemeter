@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PikaModel
+namespace PikaModel.Model
 {
     public class Story
     {

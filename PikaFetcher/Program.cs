@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PikaModel;
+using PikaModel.Model;
 
 namespace PikaFetcher
 {
@@ -30,12 +32,14 @@ namespace PikaFetcher
             await api.Init();
 
             var loopTop = LoopTop(api);
-            var loopPeriod = LoopPeriod(api);
-            await Task.WhenAll(loopTop, loopPeriod);
+            var loopRandom = LoopRandom(api);
+            await Task.WhenAll(loopTop, loopRandom);
         }
 
-        private async Task LoopPeriod(PikabuApi api)
+        private async Task LoopRandom(PikabuApi api)
         {
+            var latestHourStats = new Queue<DateTimeOffset>();
+            var latestMinuteStats = new Queue<DateTimeOffset>();
             int c = 0;
             var latestStoryId = await api.GetLatestStoryId();
             var savingTask = Task.CompletedTask;
@@ -47,11 +51,12 @@ namespace PikaFetcher
                     storyId = GetStoryId(latestStoryId);
                     await savingTask;
                     savingTask = await ProcessStory(api, storyId);
+                    await UpdateStats(latestHourStats, latestMinuteStats, "Random");
                 }
                 catch (Exception e)
                 {
                     await Task.Delay(1000);
-                    Console.WriteLine($"ERROR ({storyId}/{latestStoryId}): {e.Message}");
+                    Console.WriteLine($"!!!{DateTime.UtcNow} ERROR ({storyId}/{latestStoryId}): {e}");
                 }
                 c++;
 
@@ -63,43 +68,11 @@ namespace PikaFetcher
             }
         }
 
-        private int GetStoryId(int latestStoryId)
-        {
-            var next = r.NextDouble();
-            var skip = 0;
-            var range = 200;
-            if (next < 0.2)
-            {
-                return latestStoryId - r.Next(range);
-            }
-
-            skip += range;
-            range = 1800;
-            if (next < 0.5)
-            {
-                return latestStoryId - skip - r.Next(range);
-            }
-
-            skip += range;
-            range = 18000;
-            if (next < 0.8)
-            {
-                return latestStoryId - skip - r.Next(range);
-            }
-
-            skip += range;
-            range = 60000;
-            if (next < 1)
-            {
-                return latestStoryId - skip - r.Next(range);
-            }
-
-            skip += range;
-            return latestStoryId - skip - r.Next(latestStoryId - range);
-        }
-
         private async Task LoopTop(PikabuApi api)
         {
+            var latestHourStats = new Queue<DateTimeOffset>();
+            var latestMinuteStats = new Queue<DateTimeOffset>();
+
             int top = 500;
             var savingTask = Task.CompletedTask;
             while (true)
@@ -121,22 +94,22 @@ namespace PikaFetcher
                     continue;
                 }
 
-                for (var index = 0; index < topStoryIds.Length; index++)
+                foreach (var storyId in topStoryIds)
                 {
-                    var storyId = topStoryIds[index];
                     try
                     {
                         await savingTask;
                         savingTask = await ProcessStory(api, storyId);
+                        await UpdateStats(latestHourStats, latestMinuteStats, "Top" + top);
                     }
                     catch (Exception e)
                     {
                         await Task.Delay(1000);
-                        Console.WriteLine($"ERROR: {e.Message}");
+                        Console.WriteLine($"!!!{DateTime.UtcNow} ERROR: {e}");
                     }
                 }
 
-                Console.WriteLine("RESTART");
+                Console.WriteLine("!!!{DateTime.UtcNow} RESTART");
             }
         }
 
@@ -200,7 +173,7 @@ namespace PikaFetcher
                             Rating = comment.Rating,
                             Story = story,
                             UserName = comment.User,
-                            CommentContent = new CommentContent() { BodyHtml = comment.Body }
+                            CommentContent = new CommentContent { BodyHtml = comment.Body }
                         };
                         userComments[item.CommentId] = item;
                         await db.CommentContents.AddAsync(item.CommentContent);
@@ -216,6 +189,89 @@ namespace PikaFetcher
                 Console.WriteLine($"{DateTime.UtcNow} ({storyComments.StoryId}) {storyComments.Rating?.ToString("+0;-#") ?? "?"} {storyComments.StoryTitle}");
 
                 await db.SaveChangesAsync();
+            }
+        }
+
+        private int GetStoryId(int latestStoryId)
+        {
+            var next = r.NextDouble();
+            var skip = 0;
+            var range = 200;
+            if (next < 0.2)
+            {
+                return latestStoryId - r.Next(range);
+            }
+
+            skip += range;
+            range = 1800;
+            if (next < 0.5)
+            {
+                return latestStoryId - skip - r.Next(range);
+            }
+
+            skip += range;
+            range = 18000;
+            if (next < 0.8)
+            {
+                return latestStoryId - skip - r.Next(range);
+            }
+
+            skip += range;
+            range = 60000;
+            if (next < 1)
+            {
+                return latestStoryId - skip - r.Next(range);
+            }
+
+            skip += range;
+            return latestStoryId - skip - r.Next(latestStoryId - range);
+        }
+
+        private static async Task UpdateStats(Queue<DateTimeOffset> latestHourStats, Queue<DateTimeOffset> latestMinuteStats, string fetcherName)
+        {
+            var utcNow = DateTimeOffset.UtcNow;
+
+            latestHourStats.Enqueue(utcNow);
+            latestMinuteStats.Enqueue(utcNow);
+            while (latestHourStats.Peek() < utcNow.AddHours(-1))
+            {
+                latestHourStats.Dequeue();
+            }
+
+            while (latestMinuteStats.Peek() < utcNow.AddMinutes(-1))
+            {
+                latestMinuteStats.Dequeue();
+            }
+
+            try
+            {
+                using (var db = new PikabuContext())
+                {
+                    var stat = await db.FetcherStats.SingleOrDefaultAsync(s => s.FetcherName == fetcherName);
+                    if (stat == null)
+                    {
+                        stat = new FetcherStat();
+                        stat.FetcherName = fetcherName;
+                        db.FetcherStats.Add(stat);
+                    }
+
+                    if (latestHourStats.Count >= 2)
+                    {
+                        stat.StoriesPerSecondForLastHour =
+                            latestHourStats.Count / (utcNow - latestHourStats.Peek()).TotalSeconds;
+                    }
+
+                    if (latestMinuteStats.Count >= 2)
+                    {
+                        stat.StoriesPerSecondForLastMinute = latestMinuteStats.Count / (utcNow - latestMinuteStats.Peek()).TotalSeconds;
+                    }
+
+                    await db.SaveChangesAsync();
+                }
+            }
+            catch
+            {
+
             }
         }
     }

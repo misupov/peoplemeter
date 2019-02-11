@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PikaModel
+namespace PikaModel.Model
 {
     public class Comment
     {
@@ -14,11 +14,5 @@ namespace PikaModel
         public CommentContent CommentContent { get; set; }
         public User User { get; set; }
         public Story Story { get; set; }
-    }
-
-    public class CommentContent
-    {
-        public long CommentContentId { get; set; }
-        public string BodyHtml { get; set; }
     }
 }
