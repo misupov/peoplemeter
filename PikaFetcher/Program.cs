@@ -54,7 +54,7 @@ namespace PikaFetcher
                         savingTask = Task.Delay(TimeSpan.FromSeconds(1));
                     }
                     await savingTask;
-                    savingTask = await ProcessStory(api, storyId);
+                    savingTask = await ProcessStory(api, storyId, ' ');
                     await UpdateStats(latestHourStats, latestMinuteStats, "Random");
 
                     c++;
@@ -84,7 +84,6 @@ namespace PikaFetcher
             {
                 try
                 {
-
                     int[] topStoryIds;
                     using (var db = new PikabuContext())
                     {
@@ -112,7 +111,7 @@ namespace PikaFetcher
                             }
 
                             await savingTask;
-                            savingTask = await ProcessStory(api, storyId);
+                            savingTask = await ProcessStory(api, storyId, '!');
                             await UpdateStats(latestHourStats, latestMinuteStats, "Top" + top);
                         }
                         catch (Exception e)
@@ -122,7 +121,7 @@ namespace PikaFetcher
                         }
                     }
 
-                    Console.WriteLine("!!!{DateTime.UtcNow} RESTART");
+                    Console.WriteLine($"!!!{DateTime.UtcNow} RESTART");
                 }
                 catch (Exception e)
                 {
@@ -132,13 +131,13 @@ namespace PikaFetcher
             }
         }
 
-        private async Task<Task> ProcessStory(PikabuApi api, int storyId)
+        private async Task<Task> ProcessStory(PikabuApi api, int storyId, char fetcher)
         {
             var storyComments = await api.GetStoryComments(storyId);
-            return Task.Run(() => SaveStory(storyComments));
+            return Task.Run(() => SaveStory(storyComments, fetcher));
         }
 
-        private async Task SaveStory(StoryComments storyComments)
+        private async Task SaveStory(StoryComments storyComments, char fetcher)
         {
             using (var db = new PikabuContext())
             using (var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable))
@@ -204,7 +203,7 @@ namespace PikaFetcher
                     }
                 }
 
-                Console.WriteLine($"{DateTime.UtcNow} ({storyComments.StoryId}) {storyComments.Rating?.ToString("+0;-#") ?? "?"} {storyComments.StoryTitle}");
+                Console.WriteLine($"{fetcher}{DateTime.UtcNow} ({storyComments.StoryId}) {storyComments.Rating?.ToString("+0;-#") ?? "?"} {storyComments.StoryTitle}");
 
                 await db.SaveChangesAsync();
 

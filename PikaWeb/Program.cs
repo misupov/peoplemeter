@@ -23,12 +23,11 @@ namespace PikaWeb
             var serverCertificate = new X509Certificate2(cert, "asd123", X509KeyStorageFlags.MachineKeySet);
             Console.WriteLine(serverCertificate.HasPrivateKey);
             return WebHost.CreateDefaultBuilder(args)
-                .UseUrls(urls: "http://*:80;https://*:443")
                 .UseKestrel(options =>
-                    options.Listen(IPAddress.Any, 443, listenOptions =>
                     {
-                        listenOptions.UseHttps(serverCertificate);
-                    }))
+                        options.Listen(IPAddress.Any, 443, listenOptions => { listenOptions.UseHttps(serverCertificate); });
+                        options.Listen(IPAddress.Any, 80);
+                    })
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
                 .UseStartup<Startup>();

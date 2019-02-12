@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PikaModel;
 
 namespace PikaWeb
 {
@@ -37,6 +38,8 @@ namespace PikaWeb
             services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
             services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
 
+            services.AddDbContext<PikabuContext>();
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
@@ -52,13 +55,10 @@ namespace PikaWeb
                 app.UseHsts();
             }
 
-            app.UseCors(builder => builder.WithOrigins("http://lam0x86.com", "https://lam0x86.com"));
-
+            app.UseCors(builder => builder.WithOrigins("http://pikabu.ru", "https://pikabu.ru"));
             app.UseIpRateLimiting();
-
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseMvc();
         }
     }
