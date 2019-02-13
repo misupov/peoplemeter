@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace PikaWeb.Controllers
 {
@@ -9,7 +8,7 @@ namespace PikaWeb.Controllers
     {
         // GET api/users
         [HttpGet]
-        public async Task<string> Get()
+        public string Get()
         {
             return "N1RLdAv9CotNvJNrV1isQLJfXVx8bYcNnmpxUTvYLQ8.CtZTdwAmWHy-cn66DdUSzEFmfwAz6HLg9jNKkjzRoBU";
         }

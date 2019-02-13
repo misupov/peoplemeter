@@ -25,6 +25,7 @@ namespace PikaWeb.Controllers
 
         // GET api/users/top/{users}/{days}
         [HttpGet("top/{users}/{days}")]
+        [ResponseCache(Duration = 60)]
         public async Task<IEnumerable<TopDTO>> GetTop(int users, int days)
         {
             using (var db = new PikabuContext())

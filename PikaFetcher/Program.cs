@@ -38,8 +38,7 @@ namespace PikaFetcher
 
         private async Task LoopRandom(PikabuApi api)
         {
-            var latestHourStats = new Queue<DateTimeOffset>();
-            var latestMinuteStats = new Queue<DateTimeOffset>();
+            var performanceCounter = new PerformanceCounter("Random");
             var c = 0;
             var latestStoryId = await api.GetLatestStoryId();
             var savingTask = Task.CompletedTask;
@@ -55,7 +54,7 @@ namespace PikaFetcher
                     }
                     await savingTask;
                     savingTask = await ProcessStory(api, storyId, ' ');
-                    await UpdateStats(latestHourStats, latestMinuteStats, "Random");
+                    await performanceCounter.ProcessStory();
 
                     c++;
 
@@ -75,10 +74,8 @@ namespace PikaFetcher
 
         private async Task LoopTop(PikabuApi api)
         {
-            var latestHourStats = new Queue<DateTimeOffset>();
-            var latestMinuteStats = new Queue<DateTimeOffset>();
-
             int top = 500;
+            var performanceCounter = new PerformanceCounter("Top" + top);
             var savingTask = Task.CompletedTask;
             while (true)
             {
@@ -97,6 +94,7 @@ namespace PikaFetcher
 
                     if (topStoryIds.Length < top)
                     {
+                        Console.WriteLine($"!!!{DateTime.UtcNow} topStoryIds.Length < top ({topStoryIds.Length})");
                         await Task.Delay(TimeSpan.FromSeconds(1));
                         continue;
                     }
@@ -112,7 +110,7 @@ namespace PikaFetcher
 
                             await savingTask;
                             savingTask = await ProcessStory(api, storyId, '!');
-                            await UpdateStats(latestHourStats, latestMinuteStats, "Top" + top);
+                            await performanceCounter.ProcessStory();
                         }
                         catch (Exception e)
                         {
@@ -122,6 +120,11 @@ namespace PikaFetcher
                     }
 
                     Console.WriteLine($"!!!{DateTime.UtcNow} RESTART");
+                }
+                catch (TaskCanceledException)
+                {
+                    Console.WriteLine($"!!!{DateTime.UtcNow} TERMINATED");
+                    throw;
                 }
                 catch (Exception e)
                 {

@@ -39,7 +39,7 @@ namespace PikaWeb
             services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
 
             services.AddDbContext<PikabuContext>();
-
+            services.AddResponseCaching();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
@@ -57,6 +57,7 @@ namespace PikaWeb
 
             app.UseCors(builder => builder.WithOrigins("http://pikabu.ru", "https://pikabu.ru"));
             app.UseIpRateLimiting();
+            app.UseResponseCaching();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseMvc();
