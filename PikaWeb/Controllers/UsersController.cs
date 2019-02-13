@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using PikaModel;
 using PikaWeb.Controllers.DataTransferObjects;
 
@@ -13,6 +14,13 @@ namespace PikaWeb.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+        private readonly IMemoryCache _cache;
+
+        public UsersController(IMemoryCache memoryCache)
+        {
+            _cache = memoryCache;
+        }
+
         // GET api/users/all
         [HttpGet("all")]
         public async Task<IEnumerable<string>> Get()
@@ -28,15 +36,30 @@ namespace PikaWeb.Controllers
         [ResponseCache(Duration = 60)]
         public async Task<IEnumerable<TopDTO>> GetTop(int users, int days)
         {
-            using (var db = new PikabuContext())
+            var key = $"{CacheKeys.TopUsers}/{users}/{days}";
+            if (!_cache.TryGetValue(key, out var topUsers))
             {
-                return await db.Comments
-                    .Where(c => c.DateTimeUtc >= DateTime.UtcNow.AddDays(-days))
-                    .GroupBy(c => c.User)
-                    .OrderByDescending(grouping => grouping.Count())
-                    .Take(users)
-                    .Select(comments => new TopDTO { User = comments.Key.UserName, Comments = comments.Count()})
-                    .ToArrayAsync();
+                var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(DateTimeOffset.UtcNow + TimeSpan.FromSeconds(60));
+
+                var cacheEntry = await GetTopNonCached();
+                _cache.Set(key, cacheEntry, cacheEntryOptions);
+                return cacheEntry;
+            }
+
+            return (IEnumerable<TopDTO>) topUsers;
+
+            async Task<TopDTO[]> GetTopNonCached()
+            {
+                using (var db = new PikabuContext())
+                {
+                    return await db.Comments
+                        .Where(c => c.DateTimeUtc >= DateTime.UtcNow.AddDays(-days))
+                        .GroupBy(c => c.User)
+                        .OrderByDescending(grouping => grouping.Count())
+                        .Take(users)
+                        .Select(comments => new TopDTO {User = comments.Key.UserName, Comments = comments.Count()})
+                        .ToArrayAsync();
+                }
             }
         }
     }

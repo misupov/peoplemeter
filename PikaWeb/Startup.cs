@@ -37,6 +37,7 @@ namespace PikaWeb
             // inject counter and rules stores
             services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
             services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+            services.AddMemoryCache();
 
             services.AddDbContext<PikabuContext>();
             services.AddResponseCaching();
