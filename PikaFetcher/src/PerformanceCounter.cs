@@ -6,11 +6,11 @@ using PikaModel;
 
 namespace PikaFetcher
 {
-    public class PerformanceCounter
+    internal class PerformanceCounter
     {
         private readonly string _name;
-        private Queue<DateTimeOffset> _latestHourStats = new Queue<DateTimeOffset>();
-        private Queue<DateTimeOffset> _latestMinuteStats = new Queue<DateTimeOffset>();
+        private readonly Queue<DateTimeOffset> _latestHourStats = new Queue<DateTimeOffset>();
+        private readonly Queue<DateTimeOffset> _latestMinuteStats = new Queue<DateTimeOffset>();
 
         public PerformanceCounter(string name)
         {
