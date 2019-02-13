@@ -16,9 +16,20 @@
             data: @Html.Raw(JsonConvert.SerializeObject(Model.ChartModel)),
             options: {
                 scales: {
+                    xAxes: [{
+                        gridLines: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 50,
+                            minRotation: 50
+                        }
+                    }],
                     yAxes: [{
                         ticks: {
-                            beginAtZero:true
+                            beginAtZero: true
                         }
                     }]
                 }

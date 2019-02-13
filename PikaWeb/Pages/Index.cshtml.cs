@@ -24,7 +24,7 @@ namespace PikaWeb.Pages
         public async Task OnGetAsync()
         {
             var days = 7;
-            var users = 5;
+            var users = 10;
 
             var tops = await _db.Comments
                 .Where(c => c.DateTimeUtc >= DateTime.UtcNow.AddDays(-days))
