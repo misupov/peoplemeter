@@ -53,10 +53,11 @@ namespace PikaWeb.Controllers
                 {
                     return await db.Comments
                         .Where(c => c.DateTimeUtc >= DateTime.UtcNow.AddDays(-days))
-                        .GroupBy(c => c.User)
+                        .Select(c => new {c.UserName, c.DateTimeUtc })
+                        .GroupBy(c => c.UserName)
                         .OrderByDescending(grouping => grouping.Count())
                         .Take(users)
-                        .Select(comments => new TopDTO {User = comments.Key.UserName, Comments = comments.Count()})
+                        .Select(comments => new TopDTO {User = comments.Key, Comments = comments.Count()})
                         .ToArrayAsync();
                 }
             }
