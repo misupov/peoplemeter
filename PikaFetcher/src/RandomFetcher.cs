@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PikaFetcher
@@ -29,8 +30,11 @@ namespace PikaFetcher
                         savingTask = Task.Delay(TimeSpan.FromSeconds(1));
                     }
                     await savingTask;
-                    savingTask = await ProcessStory(storyId, ' ');
-                    await performanceCounter.ProcessStory();
+                    using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1)))
+                    {
+                        savingTask = await ProcessStory(storyId, ' ', cancellationTokenSource.Token);
+                        await performanceCounter.ProcessStory(cancellationTokenSource.Token);
+                    }
 
                     c++;
 

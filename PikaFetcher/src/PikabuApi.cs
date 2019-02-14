@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
@@ -48,7 +49,7 @@ namespace PikaFetcher
             return result;
         }
 
-        public async Task<StoryComments> GetStoryComments(int storyId)
+        public async Task<StoryComments> GetStoryComments(int storyId, CancellationToken cancellationToken)
         {
             if (_httpClient == null)
             {
@@ -60,13 +61,13 @@ namespace PikaFetcher
 
             while (totalCommentsCount > comments.Count)
             {
-                await LoadComments(storyId, comments.Last().CommentId, comments);
+                await LoadComments(storyId, comments.Last().CommentId, comments, cancellationToken);
             }
 
             return new StoryComments(storyId, author, storyTitle, rating, timestamp, comments);
         }
 
-        private async Task LoadComments(int storyId, long startCommentId, ICollection<StoryComment> comments)
+        private async Task LoadComments(int storyId, long startCommentId, ICollection<StoryComment> comments, CancellationToken cancellationToken)
         {
             var formContent = new FormUrlEncodedContent(new[]
             {
@@ -82,7 +83,7 @@ namespace PikaFetcher
                 Content = formContent
             };
             
-            var httpResponseMessage = await _httpClient.SendAsync(request);
+            var httpResponseMessage = await _httpClient.SendAsync(request, cancellationToken);
             var response = await httpResponseMessage.Content.ReadAsStringAsync();
             var responseObject = (dynamic) JsonConvert.DeserializeObject(response);
             foreach (var comment in responseObject.data.comments)
@@ -96,7 +97,9 @@ namespace PikaFetcher
             }
         }
 
-        private async Task<(string storyTitle, string author, int? rating, DateTimeOffset timestamp, int totalCommentsCount)> LoadRootComments(int storyId, List<StoryComment> storyComments)
+        private async
+            Task<(string storyTitle, string author, int? rating, DateTimeOffset timestamp, int totalCommentsCount)>
+            LoadRootComments(int storyId, List<StoryComment> storyComments)
         {
             var htmlParser = new HtmlParser();
             var document = htmlParser.ParseDocument(await _httpClient.GetStringAsync(CreateUri("/story/_" + storyId)));

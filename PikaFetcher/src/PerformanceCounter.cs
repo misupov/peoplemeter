@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PikaModel;
@@ -17,7 +18,7 @@ namespace PikaFetcher
             _name = name;
         }
 
-        public async Task ProcessStory()
+        public async Task ProcessStory(CancellationToken cancellationToken)
         {
             var utcNow = DateTimeOffset.UtcNow;
 
@@ -35,7 +36,7 @@ namespace PikaFetcher
 
             using (var db = new PikabuContext())
             {
-                var stat = await db.FetcherStats.SingleOrDefaultAsync(s => s.FetcherName == _name);
+                var stat = await db.FetcherStats.SingleOrDefaultAsync(s => s.FetcherName == _name, cancellationToken);
                 if (stat == null)
                 {
                     stat = new FetcherStat();
@@ -55,7 +56,7 @@ namespace PikaFetcher
                         _latestMinuteStats.Count / (utcNow - _latestMinuteStats.Peek()).TotalSeconds;
                 }
 
-                await db.SaveChangesAsync();
+                await db.SaveChangesAsync(cancellationToken);
             }
         }
     }

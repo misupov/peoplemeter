@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PikaModel;
@@ -53,8 +54,11 @@ namespace PikaFetcher
                             }
 
                             await savingTask;
-                            savingTask = await ProcessStory(storyId, '!');
-                            await performanceCounter.ProcessStory();
+                            using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1)))
+                            {
+                                savingTask = await ProcessStory(storyId, '!', cancellationTokenSource.Token);
+                                await performanceCounter.ProcessStory(cancellationTokenSource.Token);
+                            }
                         }
                         catch (Exception e)
                         {

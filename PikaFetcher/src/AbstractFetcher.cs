@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PikaModel;
@@ -13,26 +14,26 @@ namespace PikaFetcher
     {
         protected PikabuApi Api { get; set; }
 
-        public AbstractFetcher(PikabuApi api)
+        protected AbstractFetcher(PikabuApi api)
         {
             Api = api;
         }
 
         public abstract Task FetchLoop();
 
-        protected async Task<Task> ProcessStory(int storyId, char fetcher)
+        protected async Task<Task> ProcessStory(int storyId, char fetcher, CancellationToken cancellationToken)
         {
-            var storyComments = await Api.GetStoryComments(storyId);
-            return Task.Run(() => SaveStory(storyComments, fetcher));
+            var storyComments = await Api.GetStoryComments(storyId, cancellationToken);
+            return Task.Run(() => SaveStory(storyComments, fetcher, cancellationToken), cancellationToken);
         }
 
-        private async Task SaveStory(StoryComments storyComments, char fetcher)
+        private async Task SaveStory(StoryComments storyComments, char fetcher, CancellationToken cancellationToken)
         {
             using (var db = new PikabuContext())
-            using (var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+            using (var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken))
             {
                 var scanTime = DateTime.UtcNow;
-                var story = await db.Stories.SingleOrDefaultAsync(s => s.StoryId == storyComments.StoryId);
+                var story = await db.Stories.SingleOrDefaultAsync(s => s.StoryId == storyComments.StoryId, cancellationToken);
                 if (story == null)
                 {
                     story = new Story
@@ -44,7 +45,7 @@ namespace PikaFetcher
                         DateTimeUtc = storyComments.Timestamp.UtcDateTime,
                         Comments = new List<Comment>()
                     };
-                    await db.Stories.AddAsync(story);
+                    await db.Stories.AddAsync(story, cancellationToken);
                 }
 
                 story.Rating = storyComments.Rating;
@@ -53,17 +54,17 @@ namespace PikaFetcher
                 story.LastScanUtc = scanTime;
 
                 var storyCommentIds = storyComments.Comments.Select(c => c.CommentId).ToArray();
-                var existingComments = await db.Comments.Where(c => storyCommentIds.Contains(c.CommentId)).ToDictionaryAsync(c => c.CommentId);
+                var existingComments = await db.Comments.Where(c => storyCommentIds.Contains(c.CommentId)).ToDictionaryAsync(c => c.CommentId, cancellationToken);
 
                 var storyUserNames = new HashSet<string>(storyComments.Comments.Select(c => c.User));
-                var existingUsers = (await db.Users.Where(c => storyUserNames.Contains(c.UserName)).ToArrayAsync()).ToDictionary(u => u.UserName);
+                var existingUsers = (await db.Users.Where(c => storyUserNames.Contains(c.UserName)).ToDictionaryAsync(u => u.UserName, cancellationToken));
 
                 foreach (var comment in storyComments.Comments)
                 {
                     if (!existingUsers.TryGetValue(comment.User, out var user))
                     {
                         user = new User { UserName = comment.User, AvatarUrl = comment.UserAvatarUrl, Comments = new List<Comment>() };
-                        await db.Users.AddAsync(user);
+                        await db.Users.AddAsync(user, cancellationToken);
                         existingUsers[user.UserName] = user;
                     }
                     else
@@ -83,7 +84,7 @@ namespace PikaFetcher
                             UserName = comment.User,
                             CommentContent = new CommentContent { BodyHtml = comment.Body }
                         };
-                        await db.Comments.AddAsync(item);
+                        await db.Comments.AddAsync(item, cancellationToken);
                         existingComments[item.CommentId] = item;
                     }
                     else
@@ -94,7 +95,7 @@ namespace PikaFetcher
 
                 Console.WriteLine($"{fetcher}{DateTime.UtcNow} ({storyComments.StoryId}) {storyComments.Rating?.ToString("+0;-#") ?? "?"} {storyComments.StoryTitle}");
 
-                await db.SaveChangesAsync();
+                await db.SaveChangesAsync(cancellationToken);
 
                 transaction.Commit();
             }
