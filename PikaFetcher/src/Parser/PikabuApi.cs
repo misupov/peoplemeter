@@ -9,7 +9,7 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using Newtonsoft.Json;
 
-namespace PikaFetcher
+namespace PikaFetcher.Parser
 {
     internal class PikabuApi : IDisposable
     {
@@ -155,48 +155,6 @@ namespace PikaFetcher
         private string CreateUri(string path)
         {
             return PikabuUri + path;
-        }
-    }
-
-    internal class StoryComment
-    {
-        public string User { get; }
-        public string UserAvatarUrl { get; }
-        public long CommentId { get; }
-        public long ParentId { get; }
-        public int? Rating { get; }
-        public DateTimeOffset Timestamp { get; }
-        public string Body { get; }
-
-        public StoryComment(string user, string userAvatarUrl, long commentId, long parentId, int? rating, DateTimeOffset timestamp, string body)
-        {
-            User = user;
-            UserAvatarUrl = userAvatarUrl;
-            CommentId = commentId;
-            ParentId = parentId;
-            Rating = rating;
-            Timestamp = timestamp;
-            Body = body;
-        }
-    }
-
-    internal class StoryComments
-    {
-        public int StoryId { get; }
-        public string Author { get; }
-        public string StoryTitle { get; }
-        public int? Rating { get; }
-        public DateTimeOffset Timestamp { get; }
-        public IReadOnlyList<StoryComment> Comments { get; }
-
-        public StoryComments(int storyId, string author, string storyTitle, int? rating, DateTimeOffset timestamp, IReadOnlyList<StoryComment> comments)
-        {
-            StoryId = storyId;
-            Author = author;
-            StoryTitle = storyTitle;
-            Rating = rating;
-            Timestamp = timestamp;
-            Comments = comments;
         }
     }
 }

@@ -16,7 +16,8 @@ namespace PikaWeb
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
-            Console.WriteLine("!!!");
+            var now = DateTimeOffset.Now;
+            Console.WriteLine("Application started at: " + now);
             var cert = File.ReadAllBytes("cert.pfx");
             X509Certificate2Collection c = new X509Certificate2Collection();
 
