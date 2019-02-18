@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using PikaModel;
+using PikaModel.Models;
 
 namespace PikaWeb.Pages
 {
@@ -28,10 +25,10 @@ namespace PikaWeb.Pages
 
             var tops = await _db.Comments
                 .Where(c => c.DateTimeUtc >= DateTime.UtcNow.AddDays(-days))
-                .GroupBy(c => c.User)
+                .GroupBy(c => c.UserName)
                 .OrderByDescending(grouping => grouping.Count())
                 .Take(users)
-                .Select(comments => new { User = comments.Key.UserName, Comments = comments.Count() })
+                .Select(comments => new { User = comments.Key, Comments = comments.Count() })
                 .ToArrayAsync();
 
             ChartModel = new ChartModel()

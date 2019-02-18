@@ -6,8 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PikaFetcher.Parser;
-using PikaModel;
-using PikaModel.Model;
+using PikaModel.Models;
 
 namespace PikaFetcher
 {

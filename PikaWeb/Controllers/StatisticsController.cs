@@ -1,9 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PikaModel;
+using PikaModel.Models;
 using PikaWeb.Controllers.DataTransferObjects;
 
 namespace PikaWeb.Controllers

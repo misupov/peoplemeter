@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using PikaModel;
+using PikaModel.Models;
 
 namespace PikaFun
 {
@@ -14,10 +14,10 @@ namespace PikaFun
             {
                 var top1000Commenters = await db.Comments
                     .Where(c => c.DateTimeUtc >= DateTime.UtcNow.AddDays(-30))
-                    .GroupBy(c => c.User)
+                    .GroupBy(c => c.UserName)
                     .OrderByDescending(grouping => grouping.Count())
                     .Take(1000)
-                    .Select(comments => new { User = comments.Key.UserName, Comments = comments.Count() })
+                    .Select(comments => new { User = comments.Key, Comments = comments.Count() })
                     .ToArrayAsync();
             }
         }

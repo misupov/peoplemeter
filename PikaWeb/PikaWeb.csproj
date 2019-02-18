@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LetsEncrypt\LetsEncrypt.csproj" />
     <ProjectReference Include="..\PikaModel\PikaModel.csproj" />
   </ItemGroup>
 

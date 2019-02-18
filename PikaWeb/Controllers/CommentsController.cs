@@ -1,9 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PikaModel;
+using PikaModel.Models;
 using PikaWeb.Controllers.DataTransferObjects;
 
 namespace PikaWeb.Controllers
@@ -19,7 +18,7 @@ namespace PikaWeb.Controllers
             using (var db = new PikabuContext())
             {
                 return await db.Comments
-                    .Where(c => c.User.UserName == userName)
+                    .Where(c => c.UserName == userName)
                     .Where(c => c.CommentId < skipTill)
                     .OrderByDescending(c => c.DateTimeUtc)
                     .Take(50)
@@ -32,7 +31,7 @@ namespace PikaWeb.Controllers
                         ParentId = c.ParentId,
                         DateTimeUtc = c.DateTimeUtc,
                         CommentBody = c.CommentContent.BodyHtml,
-                        IsAuthor = c.User.UserName == c.Story.Author,
+                        IsAuthor = c.UserName == c.Story.Author,
                         Rating = c.Rating
                     })
                     .ToArrayAsync();

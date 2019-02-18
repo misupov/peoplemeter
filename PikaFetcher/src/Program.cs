@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using PikaFetcher.Parser;
+using PikaModel.Models;
 
 namespace PikaFetcher
 {

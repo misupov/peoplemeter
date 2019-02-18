@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using PikaModel;
+using PikaModel.Models;
 using PikaWeb.Controllers.DataTransferObjects;
 
 namespace PikaWeb.Controllers

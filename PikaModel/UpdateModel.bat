@@ -1,7 +1,4 @@
-set RDS_DB_NAME=pikabu
-set RDS_HOSTNAME=pikabu.c2v0z0gw7ckj.us-east-2.rds.amazonaws.com
-set RDS_PASSWORD=]nS`VCS{v}Bau9>#
-set RDS_PORT=3306
-set RDS_USERNAME=pikabu
+set DEV_CONNECTION_STRING=Server=84.201.143.249;Port=3306;Database=pikabu-dev;Uid=lam0x86;Pwd=lam0xPIKABU!
 
-dotnet ef migrations add AuthorColumnAdded
+rem dotnet ef migrations add InitialCreate
+dotnet ef database update

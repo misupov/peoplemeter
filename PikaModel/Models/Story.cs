@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PikaModel.Model
+namespace PikaModel.Models
 {
-    public class Story
+    public partial class Story
     {
+        public Story()
+        {
+            Comments = new HashSet<Comment>();
+        }
+
         public int StoryId { get; set; }
         public string Title { get; set; }
         public int? Rating { get; set; }
@@ -12,6 +17,6 @@ namespace PikaModel.Model
         public DateTime LastScanUtc { get; set; }
         public string Author { get; set; }
 
-        public ICollection<Comment> Comments { get; set; }
+        public virtual ICollection<Comment> Comments { get; set; }
     }
 }
