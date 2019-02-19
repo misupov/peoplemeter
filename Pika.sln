@@ -5,13 +5,15 @@ VisualStudioVersion = 15.0.27703.2047
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PikaFetcher", "PikaFetcher\PikaFetcher.csproj", "{E121C13F-6AC8-465A-A2CE-9FA04059AD43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PikaWeb", "PikaWeb\PikaWeb.csproj", "{CFAD6D7D-C6E6-4F26-959B-628EAE6B08B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PikaWeb", "PikaWeb\PikaWeb.csproj", "{CFAD6D7D-C6E6-4F26-959B-628EAE6B08B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PikaModel", "PikaModel\PikaModel.csproj", "{835D7DF4-7420-424D-93A3-E75A976B15DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PikaModel", "PikaModel\PikaModel.csproj", "{835D7DF4-7420-424D-93A3-E75A976B15DB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsEncrypt", "LetsEncrypt\LetsEncrypt.csproj", "{4249542B-E4A4-44A4-A2A7-014D4D45D867}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsEncrypt", "LetsEncrypt\LetsEncrypt.csproj", "{4249542B-E4A4-44A4-A2A7-014D4D45D867}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PikaFun", "PikaFun\PikaFun.csproj", "{8B779BCF-BBFE-4A6F-B26E-87253A313813}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PikaFun", "PikaFun\PikaFun.csproj", "{8B779BCF-BBFE-4A6F-B26E-87253A313813}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PikaDaemon", "PikaDaemon\PikaDaemon.csproj", "{0B2B823A-AE59-424E-8357-3608E15793ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{8B779BCF-BBFE-4A6F-B26E-87253A313813}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B779BCF-BBFE-4A6F-B26E-87253A313813}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B779BCF-BBFE-4A6F-B26E-87253A313813}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B2B823A-AE59-424E-8357-3608E15793ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B2B823A-AE59-424E-8357-3608E15793ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B2B823A-AE59-424E-8357-3608E15793ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B2B823A-AE59-424E-8357-3608E15793ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
