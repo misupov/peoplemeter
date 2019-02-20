@@ -32,7 +32,7 @@ namespace LetsEncrypt
         {
             await Task.Delay(5000);
             var acme = new AcmeContext(WellKnownServers.LetsEncryptV2);
-            //var account = GetAccount("lam0x86@gmail.com");
+            var account = GetAccount("lam0x86@gmail.com");
 
             var order = await acme.NewOrder(new[] {"peoplemeter.ru"});
 
