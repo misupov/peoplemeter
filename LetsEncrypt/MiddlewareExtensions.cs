@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
 namespace LetsEncrypt
@@ -21,12 +22,14 @@ namespace LetsEncrypt
                 var path = context.Request.Path.Value;
                 var token = path.Substring(WellKnownAcmeChallengePathPrefix.Length);
                 var key = AcmeChallengeTokensStorage.GetTokenKey(token);
+                Console.Out.WriteLine(context.Request.Path + " :: " + key);
                 await context.Response.WriteAsync(key);
             });
         }
 
         private static bool IsLetsEncryptRequest(HttpContext context)
         {
+            Console.Out.WriteLine(context.Request.Path);
             if (context.Request.IsHttps)
             {
                 return false;

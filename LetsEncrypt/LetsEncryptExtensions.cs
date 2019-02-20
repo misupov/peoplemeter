@@ -18,7 +18,7 @@ namespace LetsEncrypt
 
         public static ListenOptions UseLetsEncrypt(this ListenOptions options)
         {
-            RenewCertificate().Wait();
+            _ = RenewCertificate();
 
             var httpsOptions = new HttpsConnectionAdapterOptions { ServerCertificateSelector = ServerCertificateSelector };
             return options.UseHttps(httpsOptions);
@@ -26,6 +26,7 @@ namespace LetsEncrypt
 
         private static async Task RenewCertificate()
         {
+            await Task.Delay(5000);
             var acme = new AcmeContext(WellKnownServers.LetsEncryptV2);
             var account = await acme.NewAccount("lam0x86@gmail.com", true);
 
