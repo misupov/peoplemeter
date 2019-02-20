@@ -31,8 +31,10 @@ namespace LetsEncrypt
         private static async Task RenewCertificate()
         {
             await Task.Delay(5000);
+            Console.Out.WriteLine("Logging in to LetsEncrypt");
             var acme = new AcmeContext(WellKnownServers.LetsEncryptV2);
             var account = GetAccount("lam0x86@gmail.com");
+            Console.Out.WriteLine("Logged in to LetsEncrypt");
 
             var order = await acme.NewOrder(new[] {"peoplemeter.ru"});
 
@@ -76,14 +78,17 @@ namespace LetsEncrypt
                 var pemKey = await File.ReadAllTextAsync(LetsEncryptAccountPem, Encoding.ASCII);
                 var accountKey = KeyFactory.FromPem(pemKey);
                 var acme = new AcmeContext(WellKnownServers.LetsEncryptV2, accountKey);
+                Console.Out.WriteLine("[LetsEncrypt] Account restored");
                 return await acme.Account();
             }
             catch
             {
+                Console.Out.WriteLine("[LetsEncrypt] Creating new account");
                 var acme = new AcmeContext(WellKnownServers.LetsEncryptV2);
                 var account = await acme.NewAccount(email, true);
                 var pemKey = acme.AccountKey.ToPem();
                 await File.WriteAllTextAsync(LetsEncryptAccountPem, pemKey, Encoding.ASCII);
+                Console.Out.WriteLine("[LetsEncrypt] Account created");
                 return account;
             }
         }
