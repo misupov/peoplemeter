@@ -37,9 +37,12 @@ namespace LetsEncrypt
             Console.Out.WriteLine("Logged in to LetsEncrypt");
 
             var order = await acme.NewOrder(new[] {"peoplemeter.ru"});
+            Console.Out.WriteLine("[LetsEncrypt] new order created");
 
             var authz = (await order.Authorizations()).First();
+            Console.Out.WriteLine("[LetsEncrypt] Authorizations passed");
             var httpChallenge = await authz.Http();
+            Console.Out.WriteLine("[LetsEncrypt] http challenge ok");
             var token = httpChallenge.Token;
             var keyAuthz = httpChallenge.KeyAuthz;
             AcmeChallengeTokensStorage.AddToken(token, keyAuthz);
