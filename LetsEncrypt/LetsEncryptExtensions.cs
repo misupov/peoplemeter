@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Certes;
 using Certes.Acme;
 using Certes.Acme.Resource;
@@ -17,15 +18,15 @@ namespace LetsEncrypt
 
         public static ListenOptions UseLetsEncrypt(this ListenOptions options)
         {
-            RenewCertificate();
+            RenewCertificate().Wait();
 
             var httpsOptions = new HttpsConnectionAdapterOptions { ServerCertificateSelector = ServerCertificateSelector };
             return options.UseHttps(httpsOptions);
         }
 
-        private static async void RenewCertificate()
+        private static async Task RenewCertificate()
         {
-            var acme = new AcmeContext(WellKnownServers.LetsEncryptStagingV2);
+            var acme = new AcmeContext(WellKnownServers.LetsEncryptV2);
             var account = await acme.NewAccount("lam0x86@gmail.com", true);
 
             var order = await acme.NewOrder(new[] {"peoplemeter.ru"});
@@ -35,10 +36,13 @@ namespace LetsEncrypt
             var token = httpChallenge.Token;
             var keyAuthz = httpChallenge.KeyAuthz;
             AcmeChallengeTokensStorage.AddToken(token, keyAuthz);
-
+            Console.Out.WriteLine("Validate token");
+            await Task.Delay(10000);
             var challenge = await httpChallenge.Validate();
             while (challenge.Status != ChallengeStatus.Valid)
             {
+                Console.Out.WriteLine("Re-validate token");
+                await Task.Delay(10000);
                 challenge = await httpChallenge.Validate();
             }
 
