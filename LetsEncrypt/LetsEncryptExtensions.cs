@@ -47,6 +47,7 @@ namespace LetsEncrypt
                 challenge = await httpChallenge.Validate();
             }
 
+            Console.Out.WriteLine("Saving the Certificate.");
             var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
             var cert = await order.Generate(new CsrInfo
             {
@@ -61,11 +62,12 @@ namespace LetsEncrypt
             var pfxBuilder = cert.ToPfx(privateKey);
             var password = "abcd1234";
             _certificate = new X509Certificate2(pfxBuilder.Build("cert", password), password);
+            Console.Out.WriteLine("Certificate saved.");
         }
 
         private static X509Certificate2 ServerCertificateSelector(ConnectionContext arg1, string arg2)
         {
-            Console.Out.WriteLine("CERT REQUEST");
+            Console.Out.WriteLine($"CERT REQUEST: {_certificate == null}");
             Console.Out.WriteLine($"HasPrivateKey: {_certificate.HasPrivateKey} {_certificate.Verify()}");
             
             return _certificate;
