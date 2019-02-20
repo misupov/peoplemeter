@@ -1,4 +1,5 @@
 ﻿using AspNetCoreRateLimit;
+using LetsEncrypt;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -56,8 +57,8 @@ namespace PikaWeb
                 app.UseHsts();
             }
 
-            app.UseCors(builder => builder.WithOrigins("http://pikabu.ru", "https://pikabu.ru"));
             app.UseIpRateLimiting();
+            app.UseLetsEncrypt();
             app.UseResponseCaching();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
