@@ -73,7 +73,7 @@ namespace LetsEncrypt
                 var password = "abcd1234";
                 var certData = certPfx.Build("cert", password);
                 await File.WriteAllBytesAsync("cert.pfx", certData);
-                _certificate = new X509Certificate2(certData, password);
+                _certificate = new X509Certificate2("cert.pfx", password);
                 Console.Out.WriteLine("Certificate saved: " + _certificate.FriendlyName);
                 Console.Out.WriteLine("Certificate Verify: " + _certificate.Verify());
             }
