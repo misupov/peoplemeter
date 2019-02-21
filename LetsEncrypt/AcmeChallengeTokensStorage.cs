@@ -8,7 +8,7 @@ namespace LetsEncrypt
 
         public static void AddToken(string token, string keyAuthz)
         {
-            Tokens.AddOrUpdate(token, token, (existingToken, newToken) => newToken);
+            Tokens.AddOrUpdate(token, keyAuthz, (existingKeyAuthz, newKeyAuthz) => newKeyAuthz);
         }
 
         public static string GetTokenKey(string token)
