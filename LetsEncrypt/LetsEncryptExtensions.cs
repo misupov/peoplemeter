@@ -57,7 +57,7 @@ namespace LetsEncrypt
 
                 Console.Out.WriteLine("[LetsEncrypt] Token valid");
 
-                var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
+                var privateKey = KeyFactory.NewKey(KeyAlgorithm.RS256);
                 Console.Out.WriteLine("[LetsEncrypt] Creating Csr");
                 var certificationRequestBuilder = await orderCtx.CreateCsr(privateKey);
 
