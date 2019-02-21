@@ -38,41 +38,40 @@ namespace LetsEncrypt
             try
             {
                 Console.Out.WriteLine("[LetsEncrypt] new order created");
-                var order = await acme.NewOrder(new[] {"peoplemeter.ru"});
+                var orderCtx = await acme.NewOrder(new[] {"peoplemeter.ru"});
                 Console.Out.WriteLine("[LetsEncrypt] new order created");
 
-                var authz = (await order.Authorizations()).First();
+                var authz = (await orderCtx.Authorizations()).First();
                 Console.Out.WriteLine("[LetsEncrypt] Authorizations passed");
                 var httpChallenge = await authz.Http();
                 Console.Out.WriteLine("[LetsEncrypt] http challenge ok");
                 var token = httpChallenge.Token;
                 var keyAuthz = httpChallenge.KeyAuthz;
                 AcmeChallengeTokensStorage.AddToken(token, keyAuthz);
-                Console.Out.WriteLine("Validate token");
-                await Task.Delay(10000);
+                Console.Out.WriteLine("[LetsEncrypt] Validate token");
                 var challenge = await httpChallenge.Validate();
                 while (challenge.Status != ChallengeStatus.Valid)
                 {
-                    Console.Out.WriteLine("Re-validate token");
-                    await Task.Delay(10000);
+                    Console.Out.WriteLine("[LetsEncrypt] Re-validate token");
+                    await Task.Delay(5000);
                     challenge = await httpChallenge.Validate();
                 }
 
-                Console.Out.WriteLine("Saving the Certificate.");
                 var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
-                var cert = await order.Generate(new CsrInfo
-                {
-                    CountryName = "CA",
-                    State = "Ontario",
-                    Locality = "Toronto",
-                    Organization = "Certes",
-                    OrganizationUnit = "Dev",
-                    CommonName = "peoplemeter.ru",
-                }, privateKey);
+                var privateKeyDer = privateKey.ToDer();
+                Console.Out.WriteLine("[LetsEncrypt] Creating Csr");
+                var certificationRequestBuilder = await orderCtx.CreateCsr(privateKey);
 
-                var pfxBuilder = cert.ToPfx(privateKey);
+                Console.Out.WriteLine("[LetsEncrypt] Finalizing order");
+                var order = await orderCtx.Finalize(certificationRequestBuilder.Generate());
+
+                Console.Out.WriteLine("[LetsEncrypt] Export the certificate in PEM");
+                var certificateChain = await orderCtx.Download();
+
+                Console.Out.WriteLine("Saving the Certificate.");
+                var certPfx = certificateChain.ToPfx(privateKey);
                 var password = "abcd1234";
-                _certificate = new X509Certificate2(pfxBuilder.Build("cert", password), password);
+                _certificate = new X509Certificate2(certPfx.Build("cert", password), password);
                 Console.Out.WriteLine("Certificate saved.");
             }
             catch (Exception e)
