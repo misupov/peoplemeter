@@ -79,7 +79,7 @@ namespace LetsEncrypt
             }
             catch (Exception e)
             {
-
+                Console.Out.WriteLine(e);
             }
         }
 
