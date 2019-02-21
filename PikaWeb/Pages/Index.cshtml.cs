@@ -20,23 +20,6 @@ namespace PikaWeb.Pages
 
         public async Task OnGetAsync()
         {
-            var days = 7;
-            var users = 10;
-
-            var tops = await _db.Comments
-                .Where(c => c.DateTimeUtc >= DateTime.UtcNow.AddDays(-days))
-                .GroupBy(c => c.UserName)
-                .OrderByDescending(grouping => grouping.Count())
-                .Take(users)
-                .Select(comments => new { User = comments.Key, Comments = comments.Count() })
-                .ToArrayAsync();
-
-            ChartModel = new ChartModel()
-            {
-                labels = tops.Select(top => top.User).ToArray(),
-                datasets = new[] {new ChartDataSet() {data = tops.Select(top => top.Comments).ToArray(), label = "Комментариев за " + days + " дней"}}
-            };
-
         }
     }
 
