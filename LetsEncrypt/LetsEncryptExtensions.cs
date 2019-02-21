@@ -31,7 +31,7 @@ namespace LetsEncrypt
         private static async Task RenewCertificate()
         {
             Console.Out.WriteLine("[LetsEncrypt] Logging in");
-            var server = WellKnownServers.LetsEncryptStagingV2;
+            var server = WellKnownServers.LetsEncryptV2;
             var (acme, account) = await GetAccount("lam0x86@gmail.com", server);
             Console.Out.WriteLine("[LetsEncrypt] Logged in");
 
@@ -64,6 +64,7 @@ namespace LetsEncrypt
 
                 Console.Out.WriteLine("[LetsEncrypt] Finalizing order");
                 var order = await orderCtx.Finalize(certificationRequestBuilder.Generate());
+                Console.Out.WriteLine("[LetsEncrypt] order.Status = " + order.Status);
 
                 Console.Out.WriteLine("[LetsEncrypt] Export the certificate in PEM");
                 var certificateChain = await orderCtx.Download();
@@ -73,6 +74,7 @@ namespace LetsEncrypt
                 var password = "abcd1234";
                 _certificate = new X509Certificate2(certPfx.Build("cert", password), password);
                 Console.Out.WriteLine("Certificate saved.");
+                Console.Out.WriteLine("Certificate Verify: " + _certificate.Verify());
             }
             catch (Exception e)
             {
