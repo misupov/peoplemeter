@@ -31,7 +31,7 @@ namespace LetsEncrypt
         private static async Task RenewCertificate()
         {
             Console.Out.WriteLine("[LetsEncrypt] Logging in");
-            var server = WellKnownServers.LetsEncryptV2;
+            var server = WellKnownServers.LetsEncryptStagingV2;
             var (acme, account) = await GetAccount("lam0x86@gmail.com", server);
             Console.Out.WriteLine("[LetsEncrypt] Logged in");
 
@@ -57,7 +57,7 @@ namespace LetsEncrypt
 
                 Console.Out.WriteLine("[LetsEncrypt] Token valid");
 
-                var privateKey = KeyFactory.NewKey(KeyAlgorithm.RS256);
+                var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
                 Console.Out.WriteLine("[LetsEncrypt] Creating Csr");
                 var certificationRequestBuilder = await orderCtx.CreateCsr(privateKey);
 
