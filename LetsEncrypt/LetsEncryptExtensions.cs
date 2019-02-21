@@ -46,7 +46,7 @@ namespace LetsEncrypt
                 var token = httpChallenge.Token;
                 var keyAuthz = httpChallenge.KeyAuthz;
                 AcmeChallengeTokensStorage.AddToken(token, keyAuthz);
-                Console.Out.WriteLine("[LetsEncrypt] Validate token");
+                Console.Out.WriteLine("[LetsEncrypt] Validating token");
                 var challenge = await httpChallenge.Validate();
                 while (challenge.Status != ChallengeStatus.Valid)
                 {
@@ -55,8 +55,9 @@ namespace LetsEncrypt
                     challenge = await httpChallenge.Validate();
                 }
 
+                Console.Out.WriteLine("[LetsEncrypt] Token valid");
+
                 var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
-                var privateKeyDer = privateKey.ToDer();
                 Console.Out.WriteLine("[LetsEncrypt] Creating Csr");
                 var certificationRequestBuilder = await orderCtx.CreateCsr(privateKey);
 
@@ -70,8 +71,10 @@ namespace LetsEncrypt
                 Console.Out.WriteLine("Saving the Certificate.");
                 var certPfx = certificateChain.ToPfx(privateKey);
                 var password = "abcd1234";
-                _certificate = new X509Certificate2(certPfx.Build("cert", password), password);
-                Console.Out.WriteLine("Certificate saved.");
+                var certData = certPfx.Build("cert", password);
+                await File.WriteAllBytesAsync("cert.pfx", certData);
+                _certificate = new X509Certificate2(certData, password);
+                Console.Out.WriteLine("Certificate saved: " + _certificate.FriendlyName);
                 Console.Out.WriteLine("Certificate Verify: " + _certificate.Verify());
             }
             catch (Exception e)
