@@ -57,7 +57,7 @@ namespace LetsEncrypt
 
                 Console.Out.WriteLine("[LetsEncrypt] Token valid");
 
-                var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
+                var privateKey = KeyFactory.NewKey(KeyAlgorithm.RS256);
                 Console.Out.WriteLine("[LetsEncrypt] Creating Csr");
                 var certificationRequestBuilder = await orderCtx.CreateCsr(privateKey);
 
@@ -65,7 +65,7 @@ namespace LetsEncrypt
                 var order = await orderCtx.Finalize(certificationRequestBuilder.Generate());
                 Console.Out.WriteLine("[LetsEncrypt] order.Status = " + order.Status);
 
-                Console.Out.WriteLine("[LetsEncrypt] Export the certificate in PEM");
+                Console.Out.WriteLine("[LetsEncrypt] Downloading Certificate Chain");
                 var certificateChain = await orderCtx.Download();
 
                 Console.Out.WriteLine("Saving the Certificate.");
