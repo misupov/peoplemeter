@@ -37,9 +37,7 @@ namespace LetsEncrypt
 
             try
             {
-                Console.Out.WriteLine("[LetsEncrypt] new order created");
-                var orderCtx = await acme.NewOrder(new[] {"peoplemeter.ru"});
-                Console.Out.WriteLine("[LetsEncrypt] new order created");
+                var orderCtx = await GetOrCreateOrder(acme, account, "peoplemeter.ru");
 
                 var authz = (await orderCtx.Authorizations()).First();
                 Console.Out.WriteLine("[LetsEncrypt] Authorizations passed");
@@ -80,6 +78,21 @@ namespace LetsEncrypt
             {
 
             }
+        }
+
+        private static async Task<IOrderContext> GetOrCreateOrder(AcmeContext acme, IAccountContext account, string domain)
+        {
+            var orderListContext = await account.Orders();
+            var orderContexts = await orderListContext.Orders();
+            var order = orderContexts.FirstOrDefault();
+            if (order != null)
+            {
+                Console.Out.WriteLine("[LetsEncrypt] Using existed order");
+                return order;
+            }
+
+            Console.Out.WriteLine("[LetsEncrypt] Creating new order");
+            return await acme.NewOrder(new[] { domain });
         }
 
         private static async Task<(AcmeContext, IAccountContext)> GetAccount(string email, Uri server)
