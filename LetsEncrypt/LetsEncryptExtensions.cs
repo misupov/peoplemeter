@@ -39,6 +39,11 @@ namespace LetsEncrypt
                     store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
                     try
                     {
+                        foreach (var c in store.Certificates.Cast<X509Certificate2>())
+                        {
+                            Console.Out.WriteLine(c.Subject);
+                        }
+
                         var certificate = store.Certificates
                             .Cast<X509Certificate2>()
                             .Where(c => c.Subject == "CN=" + domain)
