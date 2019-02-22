@@ -78,7 +78,7 @@ namespace LetsEncrypt
         private static async Task CreateCertificate(string domain, string email)
         {
             Console.Out.WriteLine("[LetsEncrypt] Logging in");
-            var server = WellKnownServers.LetsEncryptStagingV2;
+            var server = WellKnownServers.LetsEncryptV2;
             var (acme, account) = await GetAccount(email, server);
             Console.Out.WriteLine("[LetsEncrypt] Logged in");
 
