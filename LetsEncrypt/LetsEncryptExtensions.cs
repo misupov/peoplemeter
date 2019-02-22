@@ -22,7 +22,7 @@ namespace LetsEncrypt
 
         public static ListenOptions UseLetsEncrypt(this ListenOptions options)
         {
-            LoadCertificate("peoplemeter.ru", "lam0x86@gmail.com").Wait();
+            _ = LoadCertificate("peoplemeter.ru", "lam0x86@gmail.com");
 
             var httpsOptions = new HttpsConnectionAdapterOptions { ServerCertificateSelector = ServerCertificateSelector };
             return options.UseHttps(httpsOptions);
@@ -90,6 +90,7 @@ namespace LetsEncrypt
                 var keyAuthz = httpChallenge.KeyAuthz;
                 AcmeChallengeTokensStorage.AddToken(token, keyAuthz);
                 Console.Out.WriteLine("[LetsEncrypt] Validating token");
+                await Task.Delay(5000);
                 var challenge = await httpChallenge.Validate();
                 while (challenge.Status != ChallengeStatus.Valid)
                 {
