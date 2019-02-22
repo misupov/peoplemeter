@@ -34,7 +34,11 @@ namespace LetsEncrypt
             var staging = environment == EnvironmentName.Development || true; // TODO: GET RID OF THIS "TRUE"
             try
             {
-                using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+                var store = staging
+                    ? new X509Store("staging", StoreLocation.CurrentUser)
+                    : new X509Store(StoreName.My, StoreLocation.CurrentUser);
+
+                using (store)
                 {
                     store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
                     try
