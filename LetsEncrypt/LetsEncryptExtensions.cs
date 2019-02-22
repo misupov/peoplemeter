@@ -39,18 +39,22 @@ namespace LetsEncrypt
                     {
                         var certificate = store.Certificates
                             .Cast<X509Certificate2>()
-                            .Where(c => c.FriendlyName == domain)
+                            .Where(c => c.Subject == "CN=" + domain)
                             .OrderByDescending(c => c.NotAfter)
                             .FirstOrDefault();
 
                         if (certificate != null)
                         {
+                            Console.Out.WriteLine("[LetsEncrypt] Local certificate found");
                             if (certificate.NotAfter < DateTime.Now.AddDays(10))
                             {
+                                Console.Out.WriteLine($"[LetsEncrypt] But it's too old (expiration date is{certificate.NotAfter})");
+                                Console.Out.WriteLine("[LetsEncrypt] Requesting new certificate");
                                 await CreateCertificate(domain, email);
                             }
                             else
                             {
+                                Console.Out.WriteLine("[LetsEncrypt] Using certificate from local store");
                                 _activeCertificate = certificate;
                             }
                         }
@@ -118,7 +122,7 @@ namespace LetsEncrypt
                 var certData = certPfx.Build(domain, password);
                 _activeCertificate = new X509Certificate2(certData, password);
                 SaveCertificate(_activeCertificate);
-                Console.Out.WriteLine("[LetsEncrypt] Certificate saved: " + _activeCertificate.FriendlyName);
+                Console.Out.WriteLine("[LetsEncrypt] Certificate saved");
             }
             catch (Exception e)
             {
