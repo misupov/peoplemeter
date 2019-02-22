@@ -18,26 +18,69 @@ namespace LetsEncrypt
     {
         private static readonly string LetsEncryptAccountPem = "lets-encrypt-account.pem";
 
-        private static X509Certificate2 _certificate;
+        private static X509Certificate2 _activeCertificate;
 
         public static ListenOptions UseLetsEncrypt(this ListenOptions options)
         {
-            _ = RenewCertificate();
+            LoadCertificate("peoplemeter.ru", "lam0x86@gmail.com").Wait();
 
             var httpsOptions = new HttpsConnectionAdapterOptions { ServerCertificateSelector = ServerCertificateSelector };
             return options.UseHttps(httpsOptions);
         }
 
-        private static async Task RenewCertificate()
+        private static async Task LoadCertificate(string domain, string email)
+        {
+            try
+            {
+                using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+                {
+                    store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
+                    try
+                    {
+                        var certificate = store.Certificates
+                            .Cast<X509Certificate2>()
+                            .Where(c => c.FriendlyName == domain)
+                            .OrderByDescending(c => c.NotAfter)
+                            .FirstOrDefault();
+
+                        if (certificate != null)
+                        {
+                            if (certificate.NotAfter < DateTime.Now.AddDays(10))
+                            {
+                                await CreateCertificate(domain, email);
+                            }
+                            else
+                            {
+                                _activeCertificate = certificate;
+                            }
+                        }
+                        else
+                        {
+                            await CreateCertificate(domain, email);
+                        }
+                    }
+                    finally
+                    {
+                        store.Close();
+                    }
+                }
+            }
+            catch
+            {
+                await CreateCertificate(domain, email);
+            }
+        }
+
+        private static async Task CreateCertificate(string domain, string email)
         {
             Console.Out.WriteLine("[LetsEncrypt] Logging in");
             var server = WellKnownServers.LetsEncryptStagingV2;
-            var (acme, account) = await GetAccount("lam0x86@gmail.com", server);
+            var (acme, account) = await GetAccount(email, server);
             Console.Out.WriteLine("[LetsEncrypt] Logged in");
 
             try
             {
-                var orderCtx = await GetOrCreateOrder(acme, account, "peoplemeter.ru");
+                var orderCtx = await GetOrCreateOrder(acme, account, domain);
 
                 var authz = (await orderCtx.Authorizations()).First();
                 Console.Out.WriteLine("[LetsEncrypt] Authorizations passed");
@@ -50,8 +93,8 @@ namespace LetsEncrypt
                 var challenge = await httpChallenge.Validate();
                 while (challenge.Status != ChallengeStatus.Valid)
                 {
-                    Console.Out.WriteLine("[LetsEncrypt] Re-validate token");
-                    await Task.Delay(5000);
+                    Console.Out.WriteLine("[LetsEncrypt] Re-validating token");
+                    await Task.Delay(1000);
                     challenge = await httpChallenge.Validate();
                 }
 
@@ -68,18 +111,33 @@ namespace LetsEncrypt
                 Console.Out.WriteLine("[LetsEncrypt] Downloading Certificate Chain");
                 var certificateChain = await orderCtx.Download();
 
-                Console.Out.WriteLine("Saving the Certificate.");
+                Console.Out.WriteLine("[LetsEncrypt] Saving the Certificate");
                 var certPfx = certificateChain.ToPfx(privateKey);
-                var password = "abcd1234";
-                var certData = certPfx.Build("cert", password);
-                await File.WriteAllBytesAsync("cert.pfx", certData);
-                _certificate = new X509Certificate2("cert.pfx", password);
-                Console.Out.WriteLine("Certificate saved: " + _certificate.FriendlyName);
-                Console.Out.WriteLine("Certificate Verify: " + _certificate.Verify());
+                var password = "";
+                var certData = certPfx.Build(domain, password);
+                _activeCertificate = new X509Certificate2(certData, password);
+                SaveCertificate(_activeCertificate);
+                Console.Out.WriteLine("[LetsEncrypt] Certificate saved: " + _activeCertificate.FriendlyName);
             }
             catch (Exception e)
             {
                 Console.Out.WriteLine(e);
+            }
+        }
+
+        private static void SaveCertificate(X509Certificate2 certificate)
+        {
+            using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+            {
+                store.Open(OpenFlags.ReadWrite);
+                try
+                {
+                    store.Add(certificate);
+                }
+                finally
+                {
+                    store.Close();
+                }
             }
         }
 
@@ -90,7 +148,7 @@ namespace LetsEncrypt
             var order = orderContexts.FirstOrDefault();
             if (order != null)
             {
-                Console.Out.WriteLine("[LetsEncrypt] Using existed order");
+                Console.Out.WriteLine("[LetsEncrypt] Using existing order");
                 return order;
             }
 
@@ -122,10 +180,10 @@ namespace LetsEncrypt
 
         private static X509Certificate2 ServerCertificateSelector(ConnectionContext arg1, string arg2)
         {
-            Console.Out.WriteLine($"CERT REQUEST: {_certificate == null}");
-            Console.Out.WriteLine($"HasPrivateKey: {_certificate.HasPrivateKey} {_certificate.Verify()}");
+            Console.Out.WriteLine($"CERT REQUEST: {_activeCertificate == null}");
+            Console.Out.WriteLine($"HasPrivateKey: {_activeCertificate.HasPrivateKey} {_activeCertificate.Verify()}");
             
-            return _certificate;
+            return _activeCertificate;
         }
     }
 }
