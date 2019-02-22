@@ -30,6 +30,8 @@ namespace LetsEncrypt
 
         private static async Task LoadCertificate(string domain, string email)
         {
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var staging = environment == EnvironmentName.Development;
             try
             {
                 using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
@@ -37,20 +39,19 @@ namespace LetsEncrypt
                     store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
                     try
                     {
-                        var certificate = store.Certificates
+                        var certificate = store.Certificates.Find(X509FindType.FindBySubjectName, domain, false)
                             .Cast<X509Certificate2>()
-                            .Where(c => c.Subject == "CN=" + domain)
                             .OrderByDescending(c => c.NotAfter)
                             .FirstOrDefault();
 
                         if (certificate != null)
                         {
-                            Console.Out.WriteLine("[LetsEncrypt] Local certificate found");
+                            Console.Out.WriteLine("[LetsEncrypt] Certificate found");
                             if (certificate.NotAfter < DateTime.Now.AddDays(10))
                             {
-                                Console.Out.WriteLine($"[LetsEncrypt] But it's too old (expiration date is{certificate.NotAfter})");
+                                Console.Out.WriteLine($"[LetsEncrypt] But it's too old (expiration date is {certificate.NotAfter})");
                                 Console.Out.WriteLine("[LetsEncrypt] Requesting new certificate");
-                                await CreateCertificate(domain, email);
+                                await CreateCertificate(domain, email, staging);
                             }
                             else
                             {
@@ -60,7 +61,7 @@ namespace LetsEncrypt
                         }
                         else
                         {
-                            await CreateCertificate(domain, email);
+                            await CreateCertificate(domain, email, staging);
                         }
                     }
                     finally
@@ -71,14 +72,14 @@ namespace LetsEncrypt
             }
             catch
             {
-                await CreateCertificate(domain, email);
+                await CreateCertificate(domain, email, staging);
             }
         }
 
-        private static async Task CreateCertificate(string domain, string email)
+        private static async Task CreateCertificate(string domain, string email, bool staging)
         {
             Console.Out.WriteLine("[LetsEncrypt] Logging in");
-            var server = WellKnownServers.LetsEncryptStagingV2;
+            var server = staging ? WellKnownServers.LetsEncryptStagingV2 : WellKnownServers.LetsEncryptV2;
             var (acme, account) = await GetAccount(email, server);
             Console.Out.WriteLine("[LetsEncrypt] Logged in");
 
@@ -121,7 +122,7 @@ namespace LetsEncrypt
                 var password = "";
                 var certData = certPfx.Build(domain, password);
                 _activeCertificate = new X509Certificate2(certData, password);
-                SaveCertificate(_activeCertificate);
+                SaveCertificate(_activeCertificate, staging);
                 Console.Out.WriteLine("[LetsEncrypt] Certificate saved");
             }
             catch (Exception e)
@@ -130,9 +131,13 @@ namespace LetsEncrypt
             }
         }
 
-        private static void SaveCertificate(X509Certificate2 certificate)
+        private static void SaveCertificate(X509Certificate2 certificate, bool staging)
         {
-            using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+            var store = staging
+                ? new X509Store("staging", StoreLocation.CurrentUser)
+                : new X509Store(StoreName.My, StoreLocation.CurrentUser);
+
+            using (store)
             {
                 store.Open(OpenFlags.ReadWrite);
                 try
