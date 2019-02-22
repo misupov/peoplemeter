@@ -39,7 +39,7 @@ namespace LetsEncrypt
                     store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
                     try
                     {
-                        var certificate = store.Certificates.Find(X509FindType.FindBySubjectName, domain, false)
+                        var certificate = store.Certificates.Find(X509FindType.FindBySubjectName, "CN=" + domain, false)
                             .Cast<X509Certificate2>()
                             .OrderByDescending(c => c.NotAfter)
                             .FirstOrDefault();
