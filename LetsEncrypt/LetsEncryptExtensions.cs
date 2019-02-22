@@ -31,7 +31,7 @@ namespace LetsEncrypt
         private static async Task LoadCertificate(string domain, string email)
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            var staging = environment == EnvironmentName.Development;
+            var staging = environment == EnvironmentName.Development || true; // TODO: GET RID OF THIS "TRUE"
             try
             {
                 using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
