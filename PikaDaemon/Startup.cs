@@ -30,6 +30,7 @@ namespace PikaDaemon
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddHttpsRedirection(options => options.HttpsPort = 443);
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
