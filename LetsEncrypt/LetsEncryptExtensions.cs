@@ -200,9 +200,6 @@ namespace LetsEncrypt
 
         private static X509Certificate2 ServerCertificateSelector(ConnectionContext arg1, string arg2)
         {
-            Console.Out.WriteLine($"CERT REQUEST: {_activeCertificate == null}");
-            Console.Out.WriteLine($"HasPrivateKey: {_activeCertificate.HasPrivateKey} {_activeCertificate.Verify()}");
-            
             return _activeCertificate;
         }
     }

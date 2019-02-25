@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace PikaDaemon.Pages
 {
-    public class AdminModel : PageModel
+    public class PrivacyModel : PageModel
     {
         public void OnGet()
         {
