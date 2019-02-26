@@ -17,7 +17,10 @@ namespace PikaDaemon.Pages
         public async Task OnGet()
         {
             var pikabuUser = await _userManager.GetUserAsync(User);
-            await _userManager.AddToRoleAsync(pikabuUser, "Administrators");
+            if (pikabuUser != null)
+            {
+                await _userManager.AddToRoleAsync(pikabuUser, "Administrators");
+            }
         }
     }
 }
