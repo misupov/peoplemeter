@@ -148,7 +148,7 @@ namespace PikaDaemon.Areas.Identity.Pages.Account.Manage
         {
             return string.Format(
                 AuthenticatorUriFormat,
-                _urlEncoder.Encode("PikaDaemon"),
+                _urlEncoder.Encode("peoplemeter.ru"),
                 _urlEncoder.Encode(email),
                 unformattedKey);
         }
