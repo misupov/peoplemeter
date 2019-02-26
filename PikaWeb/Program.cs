@@ -20,14 +20,6 @@ namespace PikaWeb
             var now = DateTimeOffset.Now;
             Console.WriteLine("Application started at: " + now);
             return WebHost.CreateDefaultBuilder(args)
-                .UseKestrel(options =>
-                {
-                    options.Listen(IPAddress.Any, 443, listenOptions =>
-                    {
-                        listenOptions.UseLetsEncrypt();
-                    });
-                    options.Listen(IPAddress.Any, 80);
-                })
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
                 .UseStartup<Startup>();
