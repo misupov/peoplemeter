@@ -1,12 +1,23 @@
-﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using PikaDaemon.Data;
 
 namespace PikaDaemon.Pages
 {
     public class IndexModel : PageModel
     {
-        public void OnGet()
-        {
+        private readonly UserManager<PikabuUser> _userManager;
 
+        public IndexModel(UserManager<PikabuUser> userManager)
+        {
+            _userManager = userManager;
+        }
+
+        public async Task OnGet()
+        {
+            var pikabuUser = await _userManager.GetUserAsync(User);
+            await _userManager.AddToRoleAsync(pikabuUser, "Administrators");
         }
     }
 }
