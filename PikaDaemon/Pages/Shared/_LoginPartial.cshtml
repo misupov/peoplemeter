@@ -1,3 +1,4 @@
+@using System.Security.Claims
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -6,6 +7,7 @@
 @if (SignInManager.IsSignedIn(User))
 {
     <li class="nav-item">
+        @User.HasClaim(claim => claim.Type == ClaimTypes.Role && claim.Value == "Administrators")
         <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity.Name!</a>
     </li>
     <li class="nav-item">
