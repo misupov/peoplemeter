@@ -1,4 +1,5 @@
-@inject SignInManager<IdentityUser> SignInManager
+@using PikaDaemon.Data
+@inject SignInManager<PikabuUser> SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }

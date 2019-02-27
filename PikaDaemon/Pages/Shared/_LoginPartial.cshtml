@@ -1,14 +1,14 @@
-@using System.Security.Claims
 @using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
+@using PikaDaemon.Data
+@using PikaDaemon.Extensions
+@inject SignInManager<PikabuUser> SignInManager
+@inject UserManager<PikabuUser> UserManager
 
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
     <li class="nav-item">
-        @User.HasClaim(claim => claim.Type == ClaimTypes.Role && claim.Value == "Administrators")
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity.Name!</a>
+        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">@(User.IsAdministrator() ? "*" : "") @User.Identity.Name</a>
     </li>
     <li class="nav-item">
         <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post" >
